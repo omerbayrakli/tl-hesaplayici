@@ -28,7 +28,7 @@ const STATIC_BUGUN = {...BUGUN};
 const SITE_URL = window.location.href;
 let _state = null;
 
-// Helpers
+// Formatter Helpers
 const fmt = (n) => {
     if(n>=1e9) return (n/1e9).toFixed(1) + ' Milyar TL';
     if(n>=1e6) return (n/1e6).toFixed(1) + ' Milyon TL';
@@ -40,10 +40,7 @@ const fmtM2 = (n) => n.toFixed(1) + ' m²';
 
 const updateBadge = (msg, ok=true) => {
     const b = document.getElementById('liveBadge');
-    if(b) {
-        b.textContent = msg;
-        b.classList.toggle('warn', !ok);
-    }
+    if(b) { b.textContent = msg; b.classList.toggle('warn', !ok); }
 };
 
 async function yukleCanli() {
@@ -76,8 +73,11 @@ async function yukleCanli() {
 }
 
 function hesapla() {
-    const miktar = parseFloat(document.getElementById('miktar').value);
+    // Noktaları temizleyip sayıya çeviriyoruz
+    const miktarRaw = document.getElementById('miktar').value.replace(/\./g, "");
+    const miktar = parseFloat(miktarRaw);
     const yil = parseInt(document.getElementById('yil').value);
+    
     if(!miktar || miktar <= 0) { document.getElementById('miktar').focus(); return; }
     
     const d = DATA[yil];
@@ -100,7 +100,6 @@ function hesapla() {
 
     _state = {miktar, yil, bugunEsit, kayip, dolarBugün, altinBugün, gumusBugün, btcBugün, evBugün, evM2, kayipTL, enIyi};
 
-    // Update DOM
     document.getElementById('bugunDeger').textContent = fmt(bugunEsit);
     document.getElementById('kayipBadge').textContent = `%${kayip} eridi`;
     document.getElementById('lossDesc').textContent = `${yil} yılında ${miktar.toLocaleString('tr-TR')} TL olan birikimin, bugün sadece ${fmt(bugunEsit)} değerinde.`;
@@ -112,13 +111,12 @@ function hesapla() {
     document.getElementById('gumusDeger').textContent = fmt(gumusBugün);
     document.getElementById('gumusKat').textContent = fmtKat(gumusBugün/miktar);
 
-    const btcNode = document.getElementById('btcDeger');
     if(btcBugün) {
-        btcNode.textContent = fmt(btcBugün);
+        document.getElementById('btcDeger').textContent = fmt(btcBugün);
         document.getElementById('btcKat').textContent = fmtKat(btcBugün/miktar);
         document.getElementById('btcBarRow').style.display = 'flex';
     } else {
-        btcNode.textContent = 'N/A';
+        document.getElementById('btcDeger').textContent = 'N/A';
         document.getElementById('btcKat').textContent = yil < 2010 ? 'BTC yoktu' : '—';
         document.getElementById('btcBarRow').style.display = 'none';
     }
@@ -127,16 +125,12 @@ function hesapla() {
     document.getElementById('evKat').textContent = fmtKat(evBugün/miktar);
     document.getElementById('evMetin').innerHTML = `${yil} yılında bu parayla yaklaşık <strong>${fmtM2(evM2)}</strong> konut payı alabiliyordun. Aynı pay bugün yaklaşık <strong>${fmt(evBugün)}</strong> ediyor.`;
 
-    // Animation Bars
     const maxVal = Math.max(1/d.enfKayip, dolarBugün/miktar, altinBugün/miktar, gumusBugün/miktar, evBugün/miktar, btcBugün ? btcBugün/miktar : 0);
     setTimeout(() => {
         const s = (id, tid, val) => {
             const el = document.getElementById(id);
             const tel = document.getElementById(tid);
-            if(el && tel) {
-                el.style.width = Math.max(2, val/maxVal * 100) + '%';
-                tel.textContent = fmtBar(val);
-            }
+            if(el) { el.style.width = Math.max(2, val/maxVal * 100) + '%'; tel.textContent = fmtBar(val); }
         };
         s('bTL','bTLt',1/d.enfKayip); s('bUSD','bUSDt',dolarBugün/miktar); s('bGold','bGoldt',altinBugün/miktar);
         s('bSilver','bSilvert',gumusBugün/miktar); if(btcBugün) s('bBTC','bBTCt',btcBugün/miktar);
@@ -162,16 +156,8 @@ function buildTweet(wid) {
     if(!_state) return "";
     const {miktar, yil, kayip, bugunEsit, dolarBugün, altinBugün, evBugün, btcBugün, enIyi} = _state;
     const base = `${SITE_URL}\n#TL #Enflasyon #Ekonomi`;
-    if(!wid) return `${yil}'te ${miktar.toLocaleString('tr-TR')} TL birikimim vardı.\n\nBugün satın alma gücü: ${fmt(bugunEsit)} (%${kayip} eridi).\n\nDolarda: ${fmt(dolarBugün)}\nAltında: ${fmt(altinBugün)}\nKonutta: ${fmt(evBugün)}${btcBugün ? `\nBTC'de: ${fmt(btcBugün)}` : ''}\n\nEn iyi: ${enIyi.ad}\n\n${base}`;
-    
-    const m = {
-        lossCard: `${yil}'teki ${miktar.toLocaleString('tr-TR')} TL'nin bugünkü değeri yalnızca ${fmt(bugunEsit)}. %${kayip} erime!`,
-        dolarWidget: `${yil}'te ${miktar.toLocaleString('tr-TR')} TL'yi dolarda tutsaydım bugün ${fmt(dolarBugün)} olurdu.`,
-        altinWidget: `${yil}'te ${miktar.toLocaleString('tr-TR')} TL'yi altında tutsaydım bugün ${fmt(altinBugün)} olurdu.`,
-        houseWidget: `${yil}'te bu parayla alınan konut payı bugün ${fmt(evBugün)} ediyor.`,
-        barWidget: `${yil}'ten bugüne yatırım araçlarının performans kıyaslaması.`
-    };
-    return `${m[wid] || ''}\n\n${base}`;
+    if(!wid) return `${yil}'te ${miktar.toLocaleString('tr-TR')} TL birikimim vardı.\n\nBugün değeri: ${fmt(bugunEsit)} (%${kayip} eridi).\n\nEn iyi: ${enIyi.ad}\n\n${base}`;
+    return `TL Hafıza Makinesi Sonuçları\n${base}`;
 }
 
 async function shareWidget(wid) {
@@ -183,15 +169,11 @@ async function shareWidget(wid) {
     
     try {
         const canvas = await html2canvas(el, {
-            backgroundColor: null,
-            scale: 2,
-            useCORS: true,
-            logging: false,
+            backgroundColor: null, scale: 2, useCORS: true, logging: false,
             ignoreElements: n => n.classList && (n.classList.contains('widget-share-btn') || n.classList.contains('share-row') || n.classList.contains('card-share-row'))
         });
         
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        if(isMobile && navigator.share) {
+        if(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) && navigator.share) {
             canvas.toBlob(async blob => {
                 const file = new File([blob], 'tl-hafiza.png', {type: 'image/png'});
                 await navigator.share({files: [file], text: tweet});
@@ -205,15 +187,25 @@ async function shareWidget(wid) {
             note.textContent = '✓ Görsel indirildi! X açılıyor…';
             setTimeout(() => window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(tweet), '_blank'), 700);
         }
-    } catch(err) {
-        window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(tweet), '_blank');
-    }
+    } catch(err) { window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(tweet), '_blank'); }
 }
 
-// Event Listeners
+// Binlik Ayırıcı Maskesi ve Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
     yukleCanli();
     
+    const miktarInput = document.getElementById('miktar');
+    
+    // Yazarken formatlama
+    miktarInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, "");
+        if (value !== "") {
+            e.target.value = Number(value).toLocaleString('tr-TR');
+        } else {
+            e.target.value = "";
+        }
+    });
+
     document.getElementById('calcBtn').addEventListener('click', hesapla);
     document.getElementById('tweetAllBtn').addEventListener('click', () => {
         if(_state) window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(buildTweet(null)), '_blank');
@@ -226,7 +218,5 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    document.getElementById('miktar').addEventListener('keydown', e => {
-        if(e.key === 'Enter') hesapla();
-    });
+    miktarInput.addEventListener('keydown', e => { if(e.key === 'Enter') hesapla(); });
 });
