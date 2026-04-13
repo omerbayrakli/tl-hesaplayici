@@ -1,419 +1,128 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TL Hafıza Makinesi</title>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,700;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<style>
-:root {
-  --bg: #F5F0E8; --bg2: #EDE8DF; --card: #FFFFFF; --text: #1A1814; --muted: #8A8680;
-  --accent: #C84B31; --accent2: #2D6A4F; --accent3: #1565C0;
-  --border: rgba(26,24,20,0.1); --shadow: 0 2px 24px rgba(26,24,20,0.08);
-}
-* { margin:0; padding:0; box-sizing:border-box; }
-body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; min-height:100vh; }
-.page { max-width:680px; margin:0 auto; padding:3rem 1.5rem 5rem; }
-
-.header { margin-bottom:2.5rem; }
-.tag { display:inline-block; font-size:11px; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:var(--accent); background:rgba(200,75,49,0.1); padding:4px 10px; border-radius:20px; margin-bottom:1rem; }
-h1 { font-family:'Fraunces',serif; font-weight:700; font-size:clamp(2.4rem,7vw,4rem); line-height:1.1; color:var(--text); margin-bottom:0.75rem; }
-h1 em { font-style:italic; color:var(--accent); }
-.desc { font-size:15px; color:var(--muted); line-height:1.6; max-width:480px; }
-.live-badge { display:inline-flex; align-items:center; gap:8px; margin-top:1rem; font-size:12px; font-weight:600; padding:8px 12px; border-radius:999px; background:rgba(45,106,79,0.10); color:var(--accent2); }
-.live-badge.warn { background:rgba(200,75,49,0.10); color:var(--accent); }
-.live-badge::before { content:""; width:8px; height:8px; border-radius:50%; background:currentColor; display:inline-block; }
-
-.card { background:var(--card); border-radius:20px; box-shadow:var(--shadow); padding:2rem; margin-bottom:1.5rem; }
-.input-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem; }
-.field label { display:block; font-size:12px; font-weight:500; color:var(--muted); letter-spacing:0.06em; text-transform:uppercase; margin-bottom:6px; }
-.field input, .field select { width:100%; background:var(--bg); border:1.5px solid transparent; border-radius:12px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:1.05rem; font-weight:500; padding:0.75rem 1rem; outline:none; transition:border-color 0.2s,background 0.2s; -webkit-appearance:none; }
-.field input:focus, .field select:focus { border-color:var(--accent); background:#fff; }
-.field select { cursor:pointer; }
-.btn { width:100%; background:var(--text); color:var(--bg); border:none; border-radius:14px; font-family:'DM Sans',sans-serif; font-size:1rem; font-weight:500; padding:1rem; cursor:pointer; transition:transform 0.15s,background 0.2s; }
-.btn:hover { background:#2d2926; }
-.btn:active { transform:scale(0.99); }
-
-.results { display:none; }
-.results.show { display:block; animation:up 0.5s ease; }
-@keyframes up { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-
-/* paylaş satırı — tüm kartlarda tutarlı */
-.card-share-row { display:flex; justify-content:flex-end; margin-bottom:0.75rem; }
-.widget-share-btn { display:inline-flex; align-items:center; gap:5px; background:rgba(26,24,20,0.07); border:none; border-radius:999px; padding:5px 10px; font-size:11px; font-weight:600; color:var(--muted); cursor:pointer; transition:background 0.15s,color 0.15s; font-family:'DM Sans',sans-serif; }
-.widget-share-btn:hover { background:rgba(26,24,20,0.13); color:var(--text); }
-.widget-share-btn svg { width:12px; height:12px; flex-shrink:0; }
-.loss-card .widget-share-btn { background:rgba(255,255,255,0.12); color:rgba(255,255,255,0.6); }
-.loss-card .widget-share-btn:hover { background:rgba(255,255,255,0.2); color:#fff; }
-
-/* LOSS */
-.loss-card { background:linear-gradient(135deg,#1A1814 0%,#2d2420 100%); border-radius:20px; padding:2rem; margin-bottom:1.5rem; color:#fff; }
-.loss-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem; }
-.loss-left .label { font-size:12px; color:rgba(255,255,255,0.5); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:6px; }
-.loss-amount { font-family:'Fraunces',serif; font-size:clamp(2rem,6vw,3rem); font-weight:700; color:#fff; line-height:1; }
-.loss-badge { background:rgba(200,75,49,0.25); color:#ff8a75; font-size:13px; font-weight:500; padding:6px 14px; border-radius:20px; white-space:nowrap; }
-.loss-desc { font-size:13px; color:rgba(255,255,255,0.45); line-height:1.6; }
-
-/* COMPARE — flex column ile buton üstte, içerik altta, YAPIŞMA YOK */
-.compare-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:1rem; margin-bottom:1.5rem; }
-.ccard { background:var(--card); border-radius:16px; box-shadow:var(--shadow); padding:0.75rem 1rem 1rem; display:flex; flex-direction:column; align-items:center; }
-.ccard .share-row { width:100%; display:flex; justify-content:flex-end; margin-bottom:0.5rem; }
-.ccard .icon { font-size:1.5rem; margin-bottom:4px; }
-.ccard .clabel { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:5px; text-align:center; }
-.ccard .cvalue { font-family:'Fraunces',serif; font-size:1.2rem; font-weight:700; line-height:1; margin-bottom:4px; text-align:center; }
-.ccard .ckat { font-size:12px; color:var(--muted); text-align:center; }
-.cvalue.up { color:var(--accent2); }
-.cvalue.btcup { color:var(--accent3); }
-.cvalue.silverup { color:#78909C; }
-
-/* BAR */
-.bar-card { background:var(--card); border-radius:20px; box-shadow:var(--shadow); padding:1.75rem; margin-bottom:1.5rem; }
-.bar-title { font-size:13px; font-weight:500; color:var(--muted); margin-bottom:1.25rem; }
-.bar-row { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
-.blabel { font-size:12px; color:var(--muted); width:52px; text-align:right; flex-shrink:0; }
-.btrack { flex:1; height:20px; background:var(--bg); border-radius:10px; overflow:hidden; }
-.bfill { height:100%; border-radius:10px; transition:width 1.1s cubic-bezier(0.4,0,0.2,1); width:0%; display:flex; align-items:center; justify-content:flex-end; padding-right:8px; }
-.bfill span { font-size:10px; font-weight:500; color:#fff; white-space:nowrap; }
-.bfill.tl     { background:linear-gradient(90deg,#e57373,#c84b31); }
-.bfill.usd    { background:linear-gradient(90deg,#4da6ff,#1565C0); }
-.bfill.gold   { background:linear-gradient(90deg,#ffd54f,#f9a825); }
-.bfill.btc    { background:linear-gradient(90deg,#81c784,#2D6A4F); }
-.bfill.silver { background:linear-gradient(90deg,#cfd8dc,#78909C); }
-
-/* HOUSE */
-.house-card { background:linear-gradient(135deg,#fff 0%,#f8f5ef 100%); border-radius:20px; box-shadow:var(--shadow); padding:1.75rem; margin-bottom:1.5rem; border:1px solid rgba(26,24,20,0.05); }
-.house-top { display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; flex-wrap:wrap; margin-bottom:1rem; }
-.house-title { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px; }
-.house-value { font-family:'Fraunces',serif; font-size:clamp(1.8rem,5vw,2.6rem); line-height:1.05; }
-.house-badge { background:rgba(45,106,79,0.10); color:var(--accent2); font-size:13px; font-weight:600; padding:8px 12px; border-radius:999px; white-space:nowrap; }
-.house-sub { font-size:14px; color:var(--muted); line-height:1.7; }
-.house-sub strong { color:var(--text); }
-
-/* YORUM */
-.yorum-card { background:var(--card); border-radius:20px; box-shadow:var(--shadow); padding:1.75rem; margin-bottom:1.5rem; }
-.yorum-text { font-size:15px; line-height:1.75; color:var(--text); }
-.yorum-text strong { color:var(--accent); }
-
-/* ANA BUTON */
-.share-btn { display:flex; align-items:center; justify-content:center; gap:10px; width:100%; background:#000; color:#fff; border:none; border-radius:14px; font-family:'DM Sans',sans-serif; font-size:15px; font-weight:500; padding:1rem; cursor:pointer; transition:background 0.2s,transform 0.15s; }
-.share-btn:hover { background:#222; }
-.share-btn:active { transform:scale(0.99); }
-.share-note { font-size:12px; color:var(--muted); text-align:center; margin-top:8px; line-height:1.5; }
-
-.footer { margin-top:3rem; padding-top:1.5rem; border-top:1px solid var(--border); font-size:12px; color:var(--muted); line-height:1.8; }
-
-@media(max-width:600px){
-  .page { padding:1.5rem 1rem 4rem; }
-  h1 { font-size:2.4rem; }
-  .input-grid { grid-template-columns:1fr; }
-  .loss-card { padding:1.25rem; }
-  .loss-top { flex-direction:column; gap:0.5rem; }
-  .loss-amount { font-size:1.8rem; }
-  .card { padding:1.25rem; }
-  .bar-card { padding:1.25rem; }
-  .house-card { padding:1.25rem; }
-  .blabel { width:40px; font-size:10px; }
-  .ccard { padding:0.6rem 0.75rem 0.75rem; }
-  .ccard .cvalue { font-size:1rem; }
-  .share-btn { font-size:14px; padding:0.875rem; }
-  .widget-share-btn .btn-txt { display:none; }
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TL Hafıza Makinesi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,700;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
-<div class="page">
-
-  <div class="header">
-    <span class="tag">Ekonomik Gerçeklik</span>
-    <h1>TL <em>Hafıza</em><br>Makinesi</h1>
-    <p class="desc">Paranızın satın alma gücünün zaman içinde nasıl eridiğini görün. Dolar, altın, gümüş, BTC ve konutla karşılaştırın.</p>
-    <span class="live-badge" id="liveBadge">Canlı veriler bekleniyor…</span>
-  </div>
-
-  <div class="card">
-    <div class="input-grid">
-      <div class="field">
-        <label>Birikimin (TL)</label>
-        <input type="number" id="miktar" placeholder="10.000" min="1" />
-      </div>
-      <div class="field">
-        <label>Hangi yılda?</label>
-        <select id="yil">
-          <option value="2005">2005</option><option value="2006">2006</option><option value="2007">2007</option>
-          <option value="2008">2008</option><option value="2009">2009</option><option value="2010" selected>2010</option>
-          <option value="2011">2011</option><option value="2012">2012</option><option value="2013">2013</option>
-          <option value="2014">2014</option><option value="2015">2015</option><option value="2016">2016</option>
-          <option value="2017">2017</option><option value="2018">2018</option><option value="2019">2019</option>
-          <option value="2020">2020</option><option value="2021">2021</option><option value="2022">2022</option>
-          <option value="2023">2023</option><option value="2024">2024</option><option value="2025">2025</option>
-          <option value="2026">2026</option>
-        </select>
-      </div>
-    </div>
-    <button class="btn" onclick="hesapla()">Hesapla — Gerçeği Gör</button>
-  </div>
-
-  <div class="results" id="results">
-
-    <div class="loss-card" id="lossCard">
-      <div class="card-share-row">
-        <button class="widget-share-btn" onclick="shareWidget('lossCard')">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-          <span class="btn-txt">X'te paylaş</span>
-        </button>
-      </div>
-      <div class="loss-top">
-        <div class="loss-left">
-          <div class="label">Bugünkü satın alma gücü eşdeğeri</div>
-          <div class="loss-amount" id="bugunDeger">—</div>
+    <div class="page">
+        <div class="header">
+            <span class="tag">Ekonomik Gerçeklik</span>
+            <h1>TL <em>Hafıza</em><br>Makinesi</h1>
+            <p class="desc">Paranızın satın alma gücünün zaman içinde nasıl eridiğini görün. Dolar, altın, gümüş, BTC ve konutla karşılaştırın.</p>
+            <span class="live-badge" id="liveBadge">Canlı veriler bekleniyor…</span>
         </div>
-        <div class="loss-badge" id="kayipBadge">—</div>
-      </div>
-      <div class="loss-desc" id="lossDesc">—</div>
+
+        <div class="card">
+            <div class="input-grid">
+                <div class="field">
+                    <label>Birikimin (TL)</label>
+                    <input type="number" id="miktar" placeholder="10.000" min="1" />
+                </div>
+                <div class="field">
+                    <label>Hangi yılda?</label>
+                    <select id="yil">
+                        <option value="2005">2005</option><option value="2006">2006</option>
+                        <option value="2007">2007</option><option value="2008">2008</option>
+                        <option value="2009">2009</option><option value="2010" selected>2010</option>
+                        <option value="2011">2011</option><option value="2012">2012</option>
+                        <option value="2013">2013</option><option value="2014">2014</option>
+                        <option value="2015">2015</option><option value="2016">2016</option>
+                        <option value="2017">2017</option><option value="2018">2018</option>
+                        <option value="2019">2019</option><option value="2020">2020</option>
+                        <option value="2021">2021</option><option value="2022">2022</option>
+                        <option value="2023">2023</option><option value="2024">2024</option>
+                        <option value="2025">2025</option><option value="2026">2026</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn" id="calcBtn">Hesapla — Gerçeği Gör</button>
+        </div>
+
+        <div class="results" id="results">
+            <div class="loss-card" id="lossCard">
+                <div class="card-share-row">
+                    <button class="widget-share-btn" data-widget="lossCard">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                        <span class="btn-txt">X'te paylaş</span>
+                    </button>
+                </div>
+                <div class="loss-top">
+                    <div class="loss-left">
+                        <div class="label">Bugünkü satın alma gücü eşdeğeri</div>
+                        <div class="loss-amount" id="bugunDeger">—</div>
+                    </div>
+                    <div class="loss-badge" id="kayipBadge">—</div>
+                </div>
+                <div class="loss-desc" id="lossDesc">—</div>
+            </div>
+
+            <div class="compare-grid">
+                <div class="ccard" id="dolarWidget">
+                    <div class="share-row"><button class="widget-share-btn" data-widget="dolarWidget"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></button></div>
+                    <div class="icon">💵</div><div class="clabel">Dolarda tutsaydın</div>
+                    <div class="cvalue up" id="dolarDeger">—</div><div class="ckat" id="dolarKat">—</div>
+                </div>
+                <div class="ccard" id="altinWidget">
+                    <div class="share-row"><button class="widget-share-btn" data-widget="altinWidget"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></button></div>
+                    <div class="icon">🥇</div><div class="clabel">Altında tutsaydın</div>
+                    <div class="cvalue up" id="altinDeger">—</div><div class="ckat" id="altinKat">—</div>
+                </div>
+                <div class="ccard" id="gumusWidget">
+                    <div class="share-row"><button class="widget-share-btn" data-widget="gumusWidget"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></button></div>
+                    <div class="icon">🥈</div><div class="clabel">Gümüşte tutsaydın</div>
+                    <div class="cvalue silverup" id="gumusDeger">—</div><div class="ckat" id="gumusKat">—</div>
+                </div>
+                <div class="ccard" id="btcWidget">
+                    <div class="share-row"><button class="widget-share-btn" data-widget="btcWidget"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></button></div>
+                    <div class="icon">₿</div><div class="clabel">BTC'de tutsaydın</div>
+                    <div class="cvalue btcup" id="btcDeger">—</div><div class="ckat" id="btcKat">—</div>
+                </div>
+            </div>
+
+            <div class="bar-card" id="barWidget">
+                <div class="card-share-row">
+                    <button class="widget-share-btn" data-widget="barWidget"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></button>
+                </div>
+                <div class="bar-title">Değer koruması karşılaştırması (başlangıç = 100)</div>
+                <div class="bar-row"><span class="blabel">TL</span><div class="btrack"><div class="bfill tl" id="bTL"><span id="bTLt"></span></div></div></div>
+                <div class="bar-row"><span class="blabel">Dolar</span><div class="btrack"><div class="bfill usd" id="bUSD"><span id="bUSDt"></span></div></div></div>
+                <div class="bar-row"><span class="blabel">Altın</span><div class="btrack"><div class="bfill gold" id="bGold"><span id="bGoldt"></span></div></div></div>
+                <div class="bar-row"><span class="blabel">Gümüş</span><div class="btrack"><div class="bfill silver" id="bSilver"><span id="bSilvert"></span></div></div></div>
+                <div class="bar-row" id="btcBarRow"><span class="blabel">BTC</span><div class="btrack"><div class="bfill btc" id="bBTC"><span id="bBTCt"></span></div></div></div>
+            </div>
+
+            <div class="house-card" id="houseWidget">
+                <div class="card-share-row">
+                    <button class="widget-share-btn" data-widget="houseWidget"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></button>
+                </div>
+                <div class="house-top">
+                    <div><div class="house-title">Ev alsaydın ne olurdu?</div><div class="house-value" id="evDeger">—</div></div>
+                    <div class="house-badge" id="evKat">—</div>
+                </div>
+                <div class="house-sub" id="evMetin">—</div>
+            </div>
+
+            <div class="yorum-card"><p class="yorum-text" id="yorum"></p></div>
+            <div class="yorum-card"><p class="yorum-text" id="gercekHayat"></p></div>
+
+            <button class="share-btn" id="tweetAllBtn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                Tüm Sonuçları Tweet At
+            </button>
+            <p class="share-note" id="shareNote">Widget paylaş butonları görseli indirir ve tweet ekranını açar — görseli ekleyip paylaşabilirsin.</p>
+        </div>
+
+        <div class="footer">
+            * Yaklaşık tarihsel veriler kullanılmıştır (TCMB, TÜİK, Investing.com).<br>
+            * Tarihsel veriler ve konut serisi yaklaşık modelleme içerir. Yatırım tavsiyesi değildir.
+        </div>
     </div>
 
-    <div class="compare-grid">
-      <div class="ccard" id="dolarWidget">
-        <div class="share-row"><button class="widget-share-btn" onclick="shareWidget('dolarWidget')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg><span class="btn-txt">X</span></button></div>
-        <div class="icon">💵</div><div class="clabel">Dolarda tutsaydın</div>
-        <div class="cvalue up" id="dolarDeger">—</div><div class="ckat" id="dolarKat">—</div>
-      </div>
-      <div class="ccard" id="altinWidget">
-        <div class="share-row"><button class="widget-share-btn" onclick="shareWidget('altinWidget')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg><span class="btn-txt">X</span></button></div>
-        <div class="icon">🥇</div><div class="clabel">Altında tutsaydın</div>
-        <div class="cvalue up" id="altinDeger">—</div><div class="ckat" id="altinKat">—</div>
-      </div>
-      <div class="ccard" id="gumusWidget">
-        <div class="share-row"><button class="widget-share-btn" onclick="shareWidget('gumusWidget')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg><span class="btn-txt">X</span></button></div>
-        <div class="icon">🥈</div><div class="clabel">Gümüşte tutsaydın</div>
-        <div class="cvalue silverup" id="gumusDeger">—</div><div class="ckat" id="gumusKat">—</div>
-      </div>
-      <div class="ccard" id="btcWidget">
-        <div class="share-row"><button class="widget-share-btn" onclick="shareWidget('btcWidget')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg><span class="btn-txt">X</span></button></div>
-        <div class="icon">₿</div><div class="clabel">BTC'de tutsaydın</div>
-        <div class="cvalue btcup" id="btcDeger">—</div><div class="ckat" id="btcKat">—</div>
-      </div>
-    </div>
-
-    <div class="bar-card" id="barWidget">
-      <div class="card-share-row">
-        <button class="widget-share-btn" onclick="shareWidget('barWidget')">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-          <span class="btn-txt">X'te paylaş</span>
-        </button>
-      </div>
-      <div class="bar-title">Değer koruması karşılaştırması (başlangıç = 100)</div>
-      <div class="bar-row"><span class="blabel">TL</span><div class="btrack"><div class="bfill tl" id="bTL"><span id="bTLt"></span></div></div></div>
-      <div class="bar-row"><span class="blabel">Dolar</span><div class="btrack"><div class="bfill usd" id="bUSD"><span id="bUSDt"></span></div></div></div>
-      <div class="bar-row"><span class="blabel">Altın</span><div class="btrack"><div class="bfill gold" id="bGold"><span id="bGoldt"></span></div></div></div>
-      <div class="bar-row"><span class="blabel">Gümüş</span><div class="btrack"><div class="bfill silver" id="bSilver"><span id="bSilvert"></span></div></div></div>
-      <div class="bar-row" id="btcBarRow"><span class="blabel">BTC</span><div class="btrack"><div class="bfill btc" id="bBTC"><span id="bBTCt"></span></div></div></div>
-    </div>
-
-    <div class="house-card" id="houseWidget">
-      <div class="card-share-row">
-        <button class="widget-share-btn" onclick="shareWidget('houseWidget')">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-          <span class="btn-txt">X'te paylaş</span>
-        </button>
-      </div>
-      <div class="house-top">
-        <div><div class="house-title">Ev alsaydın ne olurdu?</div><div class="house-value" id="evDeger">—</div></div>
-        <div class="house-badge" id="evKat">—</div>
-      </div>
-      <div class="house-sub" id="evMetin">—</div>
-    </div>
-
-    <div class="yorum-card"><p class="yorum-text" id="yorum"></p></div>
-    <div class="yorum-card"><p class="yorum-text" id="gercekHayat"></p></div>
-
-    <button class="share-btn" onclick="paylasTweet()">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-      Tüm Sonuçları Tweet At
-    </button>
-    <p class="share-note" id="shareNote">Widget paylaş butonları görseli indirir ve tweet ekranını açar — görseli ekleyip paylaşabilirsin.</p>
-
-  </div>
-
-  <div class="footer">
-    * Yaklaşık tarihsel veriler kullanılmıştır (TCMB, TÜİK, Investing.com).<br>
-    * Tarihsel veriler ve konut serisi yaklaşık modelleme içerir. Yatırım tavsiyesi değildir.
-  </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<script>
-const DATA = {
-  2005:{usd:1.34,altin:24,gumus:0.42,konut:830,enfKayip:28.0,btc:null},
-  2006:{usd:1.43,altin:28,gumus:0.52,konut:980,enfKayip:25.0,btc:null},
-  2007:{usd:1.17,altin:33,gumus:0.60,konut:1170,enfKayip:22.5,btc:null},
-  2008:{usd:1.51,altin:40,gumus:0.72,konut:1350,enfKayip:20.0,btc:null},
-  2009:{usd:1.49,altin:48,gumus:0.78,konut:1450,enfKayip:18.0,btc:null},
-  2010:{usd:1.54,altin:56,gumus:1.05,konut:1570,enfKayip:16.0,btc:0.07},
-  2011:{usd:1.88,altin:82,gumus:1.75,konut:1750,enfKayip:14.0,btc:4},
-  2012:{usd:1.78,altin:96,gumus:1.72,konut:1920,enfKayip:12.5,btc:13},
-  2013:{usd:2.13,altin:87,gumus:1.40,konut:2120,enfKayip:11.0,btc:800},
-  2014:{usd:2.33,altin:88,gumus:1.35,konut:2310,enfKayip:9.8,btc:320},
-  2015:{usd:2.92,altin:100,gumus:1.38,konut:2520,enfKayip:8.5,btc:430},
-  2016:{usd:3.52,altin:120,gumus:1.95,konut:2750,enfKayip:7.5,btc:960},
-  2017:{usd:3.79,altin:148,gumus:2.05,konut:3020,enfKayip:6.5,btc:13000},
-  2018:{usd:5.28,altin:228,gumus:2.80,konut:3450,enfKayip:5.2,btc:3800},
-  2019:{usd:5.94,altin:290,gumus:3.35,konut:3950,enfKayip:4.3,btc:7200},
-  2020:{usd:7.44,altin:490,gumus:6.35,konut:5050,enfKayip:3.5,btc:29000},
-  2021:{usd:13.3,altin:520,gumus:7.10,konut:7600,enfKayip:2.8,btc:46000},
-  2022:{usd:18.7,altin:1010,gumus:12.0,konut:14000,enfKayip:2.1,btc:16500},
-  2023:{usd:29.5,altin:1900,gumus:22.5,konut:23000,enfKayip:1.55,btc:43000},
-  2024:{usd:32.5,altin:2850,gumus:30.5,konut:32000,enfKayip:1.22,btc:67000},
-  2025:{usd:38.0,altin:3900,gumus:41.0,konut:45000,enfKayip:1.18,btc:85000},
-  2026:{usd:42.0,altin:4550,gumus:45.0,konut:58000,enfKayip:1.0,btc:95000},
-};
-let BUGUN={usd:42.0,altin:4550,gumus:45.0,btc:95000,konut:58000};
-const STATIC_BUGUN={...BUGUN};
-const SITE_URL='https://omerbayrakli.github.io/tl-hesaplayici/';
-
-function fmt(n){if(n>=1e9)return(n/1e9).toFixed(1)+' Milyar TL';if(n>=1e6)return(n/1e6).toFixed(1)+' Milyon TL';return Math.round(n).toLocaleString('tr-TR')+' TL';}
-function fmtKat(n){if(!isFinite(n))return'—';return'x'+(n<10?n.toFixed(2):Math.round(n).toLocaleString('tr-TR'))+' kat';}
-function fmtBar(n){if(!isFinite(n))return'—';return(n<10?n.toFixed(2):Math.round(n).toLocaleString('tr-TR'))+'x';}
-function fmtM2(n){return n.toFixed(1)+' m²';}
-
-function updateBadge(msg,ok=true){const b=document.getElementById('liveBadge');b.textContent=msg;b.classList.toggle('warn',!ok);}
-
-async function yukleCanli(){
-  updateBadge('Canlı veriler yükleniyor…',true);
-  try{
-    const[fx,xau,xag,btc]=await Promise.all([
-      fetch('https://open.er-api.com/v6/latest/USD',{cache:'no-store'}).then(r=>r.json()).catch(()=>null),
-      fetch('https://api.gold-api.com/price/XAU',{cache:'no-store'}).then(r=>r.json()).catch(()=>null),
-      fetch('https://api.gold-api.com/price/XAG',{cache:'no-store'}).then(r=>r.json()).catch(()=>null),
-      fetch('https://api.gold-api.com/price/BTC',{cache:'no-store'}).then(r=>r.json()).catch(()=>null),
-    ]);
-    const OTG=31.1034768;
-    if(fx?.rates?.TRY) BUGUN.usd=fx.rates.TRY;
-    const xauUsd=xau?.price??xau?.price_usd??null;
-    const xagUsd=xag?.price??xag?.price_usd??null;
-    const btcUsd=btc?.price??btc?.price_usd??null;
-    if(xauUsd) BUGUN.altin=xauUsd/OTG*BUGUN.usd;
-    if(xagUsd) BUGUN.gumus=xagUsd/OTG*BUGUN.usd;
-    if(btcUsd) BUGUN.btc=btcUsd;
-    const ok=!!(fx&&xauUsd&&xagUsd&&btcUsd);
-    const s=new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
-    updateBadge(ok?`Canlı · ${s}`:'Canlı veri kısmen geldi',ok);
-    if(_state) hesapla();
-  }catch(e){BUGUN={...STATIC_BUGUN};updateBadge('Canlı veri alınamadı · sabit değerler',false);}
-}
-
-let _state=null;
-
-function hesapla(){
-  const miktar=parseFloat(document.getElementById('miktar').value);
-  const yil=parseInt(document.getElementById('yil').value);
-  if(!miktar||miktar<=0){document.getElementById('miktar').focus();return;}
-  const d=DATA[yil];if(!d)return;
-
-  const bugunEsit=miktar/d.enfKayip;
-  const kayip=((1-1/d.enfKayip)*100).toFixed(0);
-  const dolarBugün=(miktar/d.usd)*BUGUN.usd;
-  const altinBugün=(miktar/d.altin)*BUGUN.altin;
-  const gumusBugün=(miktar/d.gumus)*BUGUN.gumus;
-  const evM2=miktar/d.konut;
-  const evBugün=evM2*BUGUN.konut;
-  let btcBugün=null;
-  if(d.btc) btcBugün=((miktar/d.usd)/d.btc)*BUGUN.btc*BUGUN.usd;
-  const sec=[{ad:'Dolar',deger:dolarBugün},{ad:'Altın',deger:altinBugün},{ad:'Gümüş',deger:gumusBugün},{ad:'Konut',deger:evBugün}];
-  if(btcBugün) sec.push({ad:'BTC',deger:btcBugün});
-  const enIyi=sec.reduce((a,b)=>b.deger>a.deger?b:a);
-  const kayipTL=miktar-bugunEsit;
-  _state={miktar,yil,bugunEsit,kayip,dolarBugün,altinBugün,gumusBugün,btcBugün,evBugün,evM2,kayipTL,enIyi};
-
-  document.getElementById('bugunDeger').textContent=fmt(bugunEsit);
-  document.getElementById('kayipBadge').textContent=`%${kayip} eridi`;
-  document.getElementById('lossDesc').textContent=`${yil} yılında ${miktar.toLocaleString('tr-TR')} TL olan birikimin, enflasyon nedeniyle bugün sadece ${fmt(bugunEsit)} değerinde.`;
-  document.getElementById('dolarDeger').textContent=fmt(dolarBugün);
-  document.getElementById('dolarKat').textContent=fmtKat(dolarBugün/miktar);
-  document.getElementById('altinDeger').textContent=fmt(altinBugün);
-  document.getElementById('altinKat').textContent=fmtKat(altinBugün/miktar);
-  document.getElementById('gumusDeger').textContent=fmt(gumusBugün);
-  document.getElementById('gumusKat').textContent=fmtKat(gumusBugün/miktar);
-  if(btcBugün){
-    document.getElementById('btcDeger').textContent=fmt(btcBugün);
-    document.getElementById('btcKat').textContent=fmtKat(btcBugün/miktar);
-    document.getElementById('btcBarRow').style.display='flex';
-  }else{
-    document.getElementById('btcDeger').textContent='N/A';
-    document.getElementById('btcKat').textContent=yil<2010?'BTC yoktu':'—';
-    document.getElementById('btcBarRow').style.display='none';
-  }
-  document.getElementById('evDeger').textContent=fmt(evBugün);
-  document.getElementById('evKat').textContent=fmtKat(evBugün/miktar);
-  document.getElementById('evMetin').innerHTML=`${yil} yılında bu parayla yaklaşık <strong>${fmtM2(evM2)}</strong> konut payı alabiliyordun. Aynı pay bugün yaklaşık <strong>${fmt(evBugün)}</strong> ediyor.`;
-
-  const maxVal=Math.max(1/d.enfKayip,dolarBugün/miktar,altinBugün/miktar,gumusBugün/miktar,evBugün/miktar,btcBugün?btcBugün/miktar:0);
-  setTimeout(()=>{
-    const s=(id,tid,val)=>{document.getElementById(id).style.width=Math.max(2,val/maxVal*100)+'%';document.getElementById(tid).textContent=fmtBar(val);};
-    s('bTL','bTLt',1/d.enfKayip);s('bUSD','bUSDt',dolarBugün/miktar);s('bGold','bGoldt',altinBugün/miktar);
-    s('bSilver','bSilvert',gumusBugün/miktar);if(btcBugün)s('bBTC','bBTCt',btcBugün/miktar);
-  },80);
-
-  document.getElementById('yorum').innerHTML=`${yil} yılındaki <strong>${miktar.toLocaleString('tr-TR')} TL</strong>'nin satın alma gücünün <strong>%${kayip}'si</strong> eridi. En iyi sonuç <strong>${enIyi.ad}</strong> ile <strong>${fmt(enIyi.deger)}</strong> olurdu.`;
-  const kiraAdet=Math.floor(kayipTL/15000),ipAdet=Math.floor(kayipTL/70000),tatAdet=Math.floor(kayipTL/20000);
-  const p=[];if(kiraAdet>0)p.push(`<strong>${kiraAdet} kira</strong>`);if(ipAdet>0)p.push(`<strong>${ipAdet} iPhone</strong>`);if(tatAdet>0)p.push(`<strong>${tatAdet} tatil</strong>`);
-  document.getElementById('gercekHayat').innerHTML=p.length?`Bu erimeyle yaklaşık <strong>${fmt(kayipTL)}</strong> kaybettin. Bu parayla bugün ${p.join(', ')} alabilirdin.`:`Bu erimeyle yaklaşık <strong>${fmt(kayipTL)}</strong> kaybettin.`;
-  document.getElementById('results').classList.add('show');
-  setTimeout(()=>document.getElementById('results').scrollIntoView({behavior:'smooth',block:'start'}),50);
-}
-
-function buildTweet(wid){
-  const{miktar,yil,kayip,bugunEsit,dolarBugün,altinBugün,gumusBugün,btcBugün,evBugün,evM2,enIyi}=_state;
-  const base=`${SITE_URL}\n#TL #Enflasyon #Ekonomi`;
-  if(!wid) return `${yil}'te ${miktar.toLocaleString('tr-TR')} TL birikimim vardı.\n\nBugün aynı paranın satın alma gücü yalnızca ${fmt(bugunEsit)} (%${kayip} eridi).\n\nDolarda: ${fmt(dolarBugün)}\nAltında: ${fmt(altinBugün)}\nKonutta: ${fmt(evBugün)}${btcBugün?`\nBTC'de: ${fmt(btcBugün)}`:''}\n\nEn iyi: ${enIyi.ad} → ${fmt(enIyi.deger)}\n\n${base}`;
-  const m={lossCard:`${yil}'teki ${miktar.toLocaleString('tr-TR')} TL'nin bugünkü satın alma gücü yalnızca ${fmt(bugunEsit)}. Birikimin %${kayip}'si erimiş.`,dolarWidget:`${yil}'te ${miktar.toLocaleString('tr-TR')} TL'yi dolarda tutsaydım bugün ${fmt(dolarBugün)} olurdu.`,altinWidget:`${yil}'te ${miktar.toLocaleString('tr-TR')} TL'yi altında tutsaydım bugün ${fmt(altinBugün)} olurdu.`,gumusWidget:`${yil}'te ${miktar.toLocaleString('tr-TR')} TL'yi gümüşte tutsaydım bugün ${fmt(gumusBugün)} olurdu.`,btcWidget:btcBugün?`${yil}'te ${miktar.toLocaleString('tr-TR')} TL'yi BTC'de tutsaydım bugün ${fmt(btcBugün)} olurdu.`:'Bu yıl için BTC verisi yok.',houseWidget:`${yil}'te bu parayla yaklaşık ${fmtM2(evM2)} konut payı alınabiliyordu. Aynı pay bugün ${fmt(evBugün)} ediyor.`,barWidget:`${yil}'ten bugüne TL, dolar, altın, gümüş ve BTC değer karşılaştırması.`};
-  return`${m[wid]||''}\n\n${base}`;
-}
-
-async function shareWidget(wid){
-  if(!_state)return;
-  const note=document.getElementById('shareNote');
-  const tweet=buildTweet(wid);
-  const el=document.getElementById(wid);
-  note.textContent='Görsel oluşturuluyor…';
-  try{
-    const canvas=await html2canvas(el,{backgroundColor:null,scale:2,useCORS:true,logging:false,ignoreElements:n=>n.classList&&(n.classList.contains('widget-share-btn')||n.classList.contains('share-row')||n.classList.contains('card-share-row'))});
-    const isMobile=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    if(isMobile){
-      canvas.toBlob(async blob=>{
-        const file=new File([blob],'tl-hafiza.png',{type:'image/png'});
-        if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
-          await navigator.share({files:[file],text:tweet});
-          note.textContent='Paylaşım menüsü açıldı.';
-        }else{
-          window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(tweet),'_blank');
-          note.textContent='X açıldı. Görseli indirmek için masaüstü kullan.';
-        }
-      },'image/png');
-    }else{
-      // Masaüstü: önce indir, sonra tweet aç
-      const dataUrl=canvas.toDataURL('image/png');
-      const a=document.createElement('a');
-      a.href=dataUrl; a.download=`tl-hafiza-${_state.yil}.png`;
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-      note.textContent='✓ Görsel indirildi! X açılıyor — görseli ekleyip paylaşabilirsin.';
-      setTimeout(()=>window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(tweet),'_blank'),700);
-    }
-  }catch(err){
-    console.error(err);
-    note.textContent='Görsel oluşturulamadı, metin ile açılıyor.';
-    window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(tweet),'_blank');
-  }
-}
-
-function paylasTweet(){
-  if(!_state)return;
-  window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(buildTweet(null)),'_blank');
-  document.getElementById('shareNote').textContent='X paylaşım ekranı açıldı!';
-}
-
-document.getElementById('miktar').addEventListener('keydown',e=>{if(e.key==='Enter')hesapla();});
-yukleCanli();
-</script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="assets/js/script.js"></script>
 </body>
 </html>
