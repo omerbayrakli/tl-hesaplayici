@@ -23,129 +23,124 @@ const DATA = {
     2026:{usd:42.0, altin:4550, gumus:45.0, konut:58000, enfKayip:1.0, btc:95000, bist:12000},
 };
 
-let BUGUN = {usd:42.0, altin:4550, gumus:45.0, btc:95000, konut:58000, bist:12000};
-const STATIC_BUGUN = {...BUGUN};
-const SITE_URL = "tl-hafiza.vercel.app"; 
+let BUGUN = {usd:42.5, altin:4650, gumus:48.0, btc:98000, konut:58000, bist:12500};
+const SITE_URL = "tl-hafiza.vercel.app";
 let _state = null;
 
+// Formatlama
 const fmt = (n) => {
+    if(!n || isNaN(n)) return "—";
     if(n>=1e9) return (n/1e9).toFixed(1) + ' Milyar TL';
     if(n>=1e6) return (n/1e6).toFixed(1) + ' Milyon TL';
     return Math.round(n).toLocaleString('tr-TR') + ' TL';
 };
 
-const updateBadge = (msg, ok=true) => {
-    const b = document.getElementById('liveBadge');
-    if(b) { b.textContent = msg; b.classList.toggle('warn', !ok); }
-};
-
+// Canlı Veri Çekme
 async function yukleCanli() {
-    updateBadge('Canlı veriler yükleniyor…', true);
+    const badge = document.getElementById('liveBadge');
     try {
-        const [fx, xau, xag, btc] = await Promise.all([
-            fetch('https://open.er-api.com/v6/latest/USD',{cache:'no-store'}).then(r=>r.json()).catch(()=>null),
-            fetch('https://api.gold-api.com/price/XAU',{cache:'no-store'}).then(r=>r.json()).catch(()=>null),
-            fetch('https://api.gold-api.com/price/XAG',{cache:'no-store'}).then(r=>r.json()).catch(()=>null),
-            fetch('https://api.gold-api.com/price/BTC',{cache:'no-store'}).then(r=>r.json()).catch(()=>null),
+        const [fx, xau, btc] = await Promise.all([
+            fetch('https://open.er-api.com/v6/latest/USD').then(r=>r.json()),
+            fetch('https://api.gold-api.com/price/XAU').then(r=>r.json()),
+            fetch('https://api.gold-api.com/price/BTC').then(r=>r.json())
         ]);
-        const OTG = 31.1034768;
-        if(fx?.rates?.TRY) BUGUN.usd = fx.rates.TRY;
-        if(xau?.price || xau?.price_usd) BUGUN.altin = (xau.price || xau.price_usd)/OTG * BUGUN.usd;
-        if(xag?.price || xag?.price_usd) BUGUN.gumus = (xag.price || xag.price_usd)/OTG * BUGUN.usd;
-        if(btc?.price || btc?.price_usd) BUGUN.btc = btc.price || btc.price_usd;
         
-        const s = new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
-        updateBadge(`Canlı · ${s}`, true);
-        if(_state) hesapla();
-    } catch(e) {
-        BUGUN = {...STATIC_BUGUN};
-        updateBadge('Canlı veri hatası', false);
+        if(fx?.rates?.TRY) BUGUN.usd = fx.rates.TRY;
+        if(xau?.price) BUGUN.altin = (xau.price / 31.1034) * BUGUN.usd;
+        if(btc?.price) BUGUN.btc = btc.price;
+
+        badge.textContent = `Canlı Veri: ${new Date().toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'})}`;
+    } catch (e) {
+        badge.textContent = "Sabit Veriler Kullanılıyor";
+        badge.style.background = "rgba(200,75,49,0.1)";
+        badge.style.color = "#C84B31";
     }
 }
 
+// Hesaplama Fonksiyonu
 function hesapla() {
-    const miktarRaw = document.getElementById('miktar').value.replace(/\./g, "");
+    const miktarInput = document.getElementById('miktar');
+    const miktarRaw = miktarInput.value.replace(/\./g, "").replace(/,/g, ".");
     const miktar = parseFloat(miktarRaw);
     const yil = parseInt(document.getElementById('yil').value);
-    
-    if(!miktar || miktar <= 0) { document.getElementById('miktar').focus(); return; }
-    
-    const d = DATA[yil];
-    const bugunEsit = miktar / d.enfKayip;
-    const kayip = ((1 - 1/d.enfKayip) * 100).toFixed(0);
-    const dolarBugün = (miktar/d.usd) * BUGUN.usd;
-    const altinBugün = (miktar/d.altin) * BUGUN.altin;
-    const gumusBugün = (miktar/d.gumus) * BUGUN.gumus;
-    const bistBugün = (miktar/d.bist) * BUGUN.bist;
-    const evM2 = miktar / d.konut;
-    const evBugün = evM2 * BUGUN.konut;
-    let btcBugün = d.btc ? ((miktar/d.usd)/d.btc) * BUGUN.btc * BUGUN.usd : null;
 
-    _state = {miktar, yil, bugunEsit, kayip, dolarBugün, altinBugün, bistBugün, btcBugün, evBugün, evM2};
-
-    document.getElementById('bugunDeger').textContent = fmt(bugunEsit);
-    document.getElementById('kayipBadge').textContent = `%${kayip} eridi`;
-    document.getElementById('lossDesc').textContent = `${yil} yılında ${miktar.toLocaleString('tr-TR')} TL olan birikimin, bugün sadece ${fmt(bugunEsit)} değerinde.`;
-    document.getElementById('dolarDeger').textContent = fmt(dolarBugün);
-    document.getElementById('altinDeger').textContent = fmt(altinBugün);
-    document.getElementById('bistDeger').textContent = fmt(bistBugün);
-    document.getElementById('gumusDeger').textContent = fmt(gumusBugün);
-    
-    if(btcBugün) {
-        document.getElementById('btcDeger').textContent = fmt(btcBugün);
-        document.getElementById('btcWidget').style.display = 'flex';
-    } else {
-        document.getElementById('btcWidget').style.display = 'none';
+    if(!miktar || miktar <= 0) {
+        miktarInput.classList.add('error');
+        setTimeout(()=>miktarInput.classList.remove('error'), 500);
+        return;
     }
 
-    document.getElementById('evMetin').innerHTML = `${yil} yılında bu parayla yaklaşık <strong>${evM2.toFixed(1)} m²</strong> konut payı alabiliyordun. Bugün aynı pay <strong>${fmt(evBugün)}</strong> değerinde.`;
-    document.getElementById('yorum').innerHTML = `${yil} yılındaki birikimin satın alma gücünün <strong>%${kayip}'si</strong> enflasyonda buhar oldu.`;
+    const d = DATA[yil];
+    if(!d) return;
+
+    // Hesaplamalar
+    const bugunEsit = miktar / d.enfKayip;
+    const kayipYuzde = ((1 - 1/d.enfKayip) * 100).toFixed(0);
+    const dolarBugün = (miktar / d.usd) * BUGUN.usd;
+    const altinBugün = (miktar / d.altin) * BUGUN.altin;
+    const gumusBugün = (miktar / d.gumus) * BUGUN.gumus;
+    const bistBugün = (miktar / d.bist) * BUGUN.bist;
+    const btcBugün = d.btc ? ((miktar/d.usd)/d.btc) * BUGUN.btc * BUGUN.usd : null;
+    const evM2 = miktar / d.konut;
+    const evBugün = evM2 * BUGUN.konut;
+
+    _state = { miktar, yil, bugunEsit, kayipYuzde, dolarBugün, altinBugün, gumusBugün, bistBugün, btcBugün, evBugün, evM2 };
+
+    // UI Güncelleme
+    document.getElementById('bugunDeger').textContent = fmt(bugunEsit);
+    document.getElementById('kayipBadge').textContent = `%${kayipYuzde} ERİDİ`;
+    document.getElementById('lossDesc').textContent = `${yil} yılındaki ${miktar.toLocaleString('tr-TR')} TL'nin alım gücü bugün bitti.`;
+    
+    document.getElementById('bistDeger').textContent = fmt(bistBugün);
+    document.getElementById('altinDeger').textContent = fmt(altinBugün);
+    document.getElementById('dolarDeger').textContent = fmt(dolarBugün);
+    document.getElementById('gumusDeger').textContent = fmt(gumusBugün);
+    
+    const btcEl = document.getElementById('btcDeger');
+    if(btcBugün) {
+        btcEl.textContent = fmt(btcBugün);
+        btcEl.parentElement.style.display = "flex";
+    } else {
+        btcEl.parentElement.style.display = "none";
+    }
+
+    document.getElementById('evDeger').textContent = fmt(evBugün);
+    document.getElementById('evMetin').innerHTML = `${yil} yılında bu parayla <strong>${evM2.toFixed(1)} m²</strong> konut payı alabiliyordun.`;
+    
+    document.getElementById('yorum').innerHTML = `O gün bu parayla krallar gibi yaşarken, bugün sadece <strong>${fmt(bugunEsit)}</strong> değerinde bir alım gücün kalmış.`;
     
     const kayipTL = miktar - bugunEsit;
     const ipAdet = Math.floor(kayipTL/75000);
-    document.getElementById('gercekHayat').innerHTML = ipAdet > 0 
-        ? `Bu erimeyle cebinden yaklaşık <strong>${fmt(kayipTL)}</strong> uçtu. Bugün bununla <strong>${ipAdet} tane iPhone</strong> alabilirdin.` 
-        : `Satın alma gücün <strong>${fmt(kayipTL)}</strong> azaldı.`;
+    document.getElementById('gercekHayat').innerHTML = ipAdet > 0 ? `Buhar olan bu parayla tam <strong>${ipAdet} tane iPhone</strong> alabilirdin.` : `Paran göz göre göre erimiş.`;
 
     document.getElementById('results').classList.add('show');
-    setTimeout(() => document.getElementById('results').scrollIntoView({behavior:'smooth', block:'start'}), 50);
+    document.getElementById('results').scrollIntoView({behavior:'smooth', block:'start'});
 }
 
-function getKomediliTweet() {
-    if(!_state) return "";
-    const {miktar, yil, kayip, bugunEsit, bistBugün} = _state;
-    const espriler = [
-        `${yil} yılında kenara ${miktar.toLocaleString('tr-TR')} TL atmıştım. Bugün o parayla sadece 1 porsiyon "ekonomik gerçeklik" yiyebiliyorum. Gücüm %${kayip} erimiş...`,
-        `${yil}'te ${miktar.toLocaleString('tr-TR')} TL birikimim vardı. Bugün o para ${fmt(bugunEsit)} ediyor. O gün Borsaya girseydim bugün ${fmt(bistBugün)} param vardı, şimdi metrobüs bekliyorum.`,
-        "Ekonomi dersi:\n" + `${yil} birikimi: ${miktar.toLocaleString('tr-TR')} TL\nBugünkü karşılığı: ${fmt(bugunEsit)}\n\nAğlamak serbest: ${SITE_URL}`
-    ];
-    return espriler[Math.floor(Math.random() * espriler.length)];
-}
-
-function shareOnTwitter() {
+// Twitter Paylaşım
+function paylas() {
     if(!_state) return;
-    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(getKomediliTweet())}`, '_blank');
+    const msgs = [
+        `${_state.yil} yılında ${_state.miktar.toLocaleString('tr-TR')} TL birikimim vardı. Bugün alım gücü sadece ${fmt(_state.bugunEsit)}. %${_state.kayipYuzde} erime... Şaka gibi.`,
+        `O gün parayı ${_state.yil}'de kenara koyacağıma BIST'e koysaydım bugün ${fmt(_state.bistBugün)} param vardı. Biz yastık altına güvendik, enflasyon bizi yedi.`,
+        "Ekonomi testi sonucum: %" + _state.kayipYuzde + " kayıp. Alım gücüm bitmiş. Detaylar burada: " + SITE_URL
+    ];
+    const text = msgs[Math.floor(Math.random()*msgs.length)];
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
 }
 
-function setLastUpdate() {
-    const updateTime = "13.04.2026 - 16:50"; 
-    document.getElementById('lastUpdate').textContent = `Son Güncelleme: ${updateTime}`;
-}
-
+// Başlatıcı
 document.addEventListener('DOMContentLoaded', () => {
     yukleCanli();
-    setLastUpdate();
+    document.getElementById('lastUpdate').textContent = `Son Güncelleme: 13.04.2026 - 17:00`;
     
     const miktarInput = document.getElementById('miktar');
-    miktarInput.addEventListener('input', function(e) {
-        let value = e.target.value.replace(/\D/g, "");
-        if (value !== "") e.target.value = Number(value).toLocaleString('tr-TR');
-        else e.target.value = "";
+    miktarInput.addEventListener('input', (e) => {
+        let val = e.target.value.replace(/\D/g, "");
+        e.target.value = val ? Number(val).toLocaleString('tr-TR') : "";
     });
 
     document.getElementById('calcBtn').addEventListener('click', hesapla);
-    document.querySelectorAll('.widget-share-btn, .share-btn').forEach(btn => {
-        btn.addEventListener('click', shareOnTwitter);
-    });
-    miktarInput.addEventListener('keydown', e => { if(e.key === 'Enter') hesapla(); });
+    document.getElementById('tweetAllBtn').addEventListener('click', paylas);
+    document.querySelectorAll('.widget-share-btn').forEach(btn => btn.addEventListener('click', paylas));
 });
