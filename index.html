@@ -192,6 +192,51 @@ h1 em { font-style: italic; color: var(--accent); }
 .bfill.btc  { background: linear-gradient(90deg,#81c784,#2D6A4F); }
 .bfill.silver { background: linear-gradient(90deg,#cfd8dc,#78909C); }
 
+
+.house-card {
+  background: linear-gradient(135deg, #fff 0%, #f8f5ef 100%);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  padding: 1.75rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid rgba(26,24,20,0.05);
+}
+.house-top {
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:1rem;
+  flex-wrap:wrap;
+  margin-bottom: 1rem;
+}
+.house-title {
+  font-size: 12px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+.house-value {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(1.8rem, 5vw, 2.6rem);
+  line-height: 1.05;
+}
+.house-badge {
+  background: rgba(45,106,79,0.10);
+  color: var(--accent2);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.house-sub {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.house-sub strong { color: var(--text); }
+
 /* YORUM */
 .yorum-card { background: var(--card); border-radius: 20px; box-shadow: var(--shadow); padding: 1.75rem; margin-bottom: 1.5rem; }
 .yorum-text { font-size: 15px; line-height: 1.75; color: var(--text); }
@@ -245,7 +290,7 @@ h1 em { font-style: italic; color: var(--accent); }
   <div class="header">
     <span class="tag">Ekonomik Gerçeklik</span>
     <h1>TL <em>Hafıza</em><br>Makinesi</h1>
-    <p class="desc">Paranızın satın alma gücünün zaman içinde nasıl eridiğini görün. Dolar, altın ve BTC ile karşılaştırın.</p>
+    <p class="desc">Paranızın satın alma gücünün zaman içinde nasıl eridiğini görün. Dolar, altın, gümüş, BTC ve konutla karşılaştırın.</p>
   </div>
 
   <div class="card">
@@ -334,6 +379,18 @@ h1 em { font-style: italic; color: var(--accent); }
       <div class="bar-row" id="btcBarRow"><span class="blabel">BTC</span><div class="btrack"><div class="bfill btc" id="bBTC"><span id="bBTCt"></span></div></div></div>
     </div>
 
+
+    <div class="house-card">
+      <div class="house-top">
+        <div>
+          <div class="house-title">Ev alsaydın ne olurdu?</div>
+          <div class="house-value" id="evDeger">—</div>
+        </div>
+        <div class="house-badge" id="evKat">—</div>
+      </div>
+      <div class="house-sub" id="evMetin">—</div>
+    </div>
+
     <div class="yorum-card">
       <p class="yorum-text" id="yorum"></p>
     </div>
@@ -352,7 +409,7 @@ h1 em { font-style: italic; color: var(--accent); }
 
   <div class="footer">
     * Yaklaşık tarihsel veriler kullanılmıştır (TCMB, TÜİK, Investing.com).<br>
-    * 2025 ve 2026 verileri yaklaşık / dönemsel piyasa verileriyle modellenmiştir. Yatırım tavsiyesi değildir.
+    * Bu sürümde veriler dosya içindeki sabit değerlerden hesaplanır; tarihsel veriler ve konut serisi yaklaşık modelleme içerir. Yatırım tavsiyesi değildir.
   </div>
 </div>
 
@@ -362,35 +419,55 @@ h1 em { font-style: italic; color: var(--accent); }
 // Örn: 2010'da 1 TL bugün ~0.047 TL değerinde ise enfKayip yaklaşık 21.3 olur
 // bugunEsit = miktar / enfKayip
 const DATA = {
-  2005: { usd:1.34,  altin:24,    gumus:0.42, enfKayip:28.0, btc:null },
-  2006: { usd:1.43,  altin:28,    gumus:0.52, enfKayip:25.0, btc:null },
-  2007: { usd:1.17,  altin:33,    gumus:0.60, enfKayip:22.5, btc:null },
-  2008: { usd:1.51,  altin:40,    gumus:0.72, enfKayip:20.0, btc:null },
-  2009: { usd:1.49,  altin:48,    gumus:0.78, enfKayip:18.0, btc:null },
-  2010: { usd:1.54,  altin:56,    gumus:1.05, enfKayip:16.0, btc:0.07 },
-  2011: { usd:1.88,  altin:82,    gumus:1.75, enfKayip:14.0, btc:4 },
-  2012: { usd:1.78,  altin:96,    gumus:1.72, enfKayip:12.5, btc:13 },
-  2013: { usd:2.13,  altin:87,    gumus:1.40, enfKayip:11.0, btc:800 },
-  2014: { usd:2.33,  altin:88,    gumus:1.35, enfKayip:9.8,  btc:320 },
-  2015: { usd:2.92,  altin:100,   gumus:1.38, enfKayip:8.5,  btc:430 },
-  2016: { usd:3.52,  altin:120,   gumus:1.95, enfKayip:7.5,  btc:960 },
-  2017: { usd:3.79,  altin:148,   gumus:2.05, enfKayip:6.5,  btc:13000 },
-  2018: { usd:5.28,  altin:228,   gumus:2.80, enfKayip:5.2,  btc:3800 },
-  2019: { usd:5.94,  altin:290,   gumus:3.35, enfKayip:4.3,  btc:7200 },
-  2020: { usd:7.44,  altin:490,   gumus:6.35, enfKayip:3.5,  btc:29000 },
-  2021: { usd:13.3,  altin:520,   gumus:7.10, enfKayip:2.8,  btc:46000 },
-  2022: { usd:18.7,  altin:1010,  gumus:12.0, enfKayip:2.1,  btc:16500 },
-  2023: { usd:29.5,  altin:1900,  gumus:22.5, enfKayip:1.55, btc:43000 },
-  2024: { usd:32.5,  altin:2850,  gumus:30.5, enfKayip:1.22, btc:67000 },
-  2025: { usd:38.0,  altin:3900,  gumus:41.0, enfKayip:1.18, btc:85000 },
-  2026: { usd:42.0,  altin:4550,  gumus:45.0, enfKayip:1.0,  btc:95000 },
+  2005: { usd:1.34,  altin:24,    gumus:0.42, konut:830,    enfKayip:28.0, btc:null },
+  2006: { usd:1.43,  altin:28,    gumus:0.52, konut:980,    enfKayip:25.0, btc:null },
+  2007: { usd:1.17,  altin:33,    gumus:0.60, konut:1170,   enfKayip:22.5, btc:null },
+  2008: { usd:1.51,  altin:40,    gumus:0.72, konut:1350,   enfKayip:20.0, btc:null },
+  2009: { usd:1.49,  altin:48,    gumus:0.78, konut:1450,   enfKayip:18.0, btc:null },
+  2010: { usd:1.54,  altin:56,    gumus:1.05, konut:1570,   enfKayip:16.0, btc:0.07 },
+  2011: { usd:1.88,  altin:82,    gumus:1.75, konut:1750,   enfKayip:14.0, btc:4 },
+  2012: { usd:1.78,  altin:96,    gumus:1.72, konut:1920,   enfKayip:12.5, btc:13 },
+  2013: { usd:2.13,  altin:87,    gumus:1.40, konut:2120,   enfKayip:11.0, btc:800 },
+  2014: { usd:2.33,  altin:88,    gumus:1.35, konut:2310,   enfKayip:9.8,  btc:320 },
+  2015: { usd:2.92,  altin:100,   gumus:1.38, konut:2520,   enfKayip:8.5,  btc:430 },
+  2016: { usd:3.52,  altin:120,   gumus:1.95, konut:2750,   enfKayip:7.5,  btc:960 },
+  2017: { usd:3.79,  altin:148,   gumus:2.05, konut:3020,   enfKayip:6.5,  btc:13000 },
+  2018: { usd:5.28,  altin:228,   gumus:2.80, konut:3450,   enfKayip:5.2,  btc:3800 },
+  2019: { usd:5.94,  altin:290,   gumus:3.35, konut:3950,   enfKayip:4.3,  btc:7200 },
+  2020: { usd:7.44,  altin:490,   gumus:6.35, konut:5050,   enfKayip:3.5,  btc:29000 },
+  2021: { usd:13.3,  altin:520,   gumus:7.10, konut:7600,   enfKayip:2.8,  btc:46000 },
+  2022: { usd:18.7,  altin:1010,  gumus:12.0, konut:14000,  enfKayip:2.1,  btc:16500 },
+  2023: { usd:29.5,  altin:1900,  gumus:22.5, konut:23000,  enfKayip:1.55, btc:43000 },
+  2024: { usd:32.5,  altin:2850,  gumus:30.5, konut:32000,  enfKayip:1.22, btc:67000 },
+  2025: { usd:38.0,  altin:3900,  gumus:41.0, konut:45000,  enfKayip:1.18, btc:85000 },
+  2026: { usd:42.0,  altin:4550,  gumus:45.0, konut:58000,  enfKayip:1.0,  btc:95000 },
 };
-const BUGUN = { usd:42.0, altin:4550, gumus:45.0, btc:95000 };
+const BUGUN = { usd:42.0, altin:4550, gumus:45.0, btc:95000, konut:58000 };
 
 function fmt(n) {
   if (n >= 1e9) return (n/1e9).toFixed(1) + ' Milyar TL';
   if (n >= 1e6) return (n/1e6).toFixed(1) + ' Milyon TL';
   return Math.round(n).toLocaleString('tr-TR') + ' TL';
+}
+
+function fmtKat(n) {
+  if (!isFinite(n)) return '—';
+  if (n < 10) {
+    return 'x' + n.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' kat';
+  }
+  return 'x' + n.toLocaleString('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + ' kat';
+}
+
+function fmtBarKat(n) {
+  if (!isFinite(n)) return '—';
+  if (n < 10) {
+    return n.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + 'x';
+  }
+  return n.toLocaleString('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + 'x';
+}
+
+function fmtM2(n) {
+  return n.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' m²';
 }
 
 let _state = null;
@@ -413,6 +490,9 @@ function hesapla() {
   const gumusGram = miktar / d.gumus;
   const gumusBugün = gumusGram * BUGUN.gumus;
 
+  const evM2 = miktar / d.konut;
+  const evBugün = evM2 * BUGUN.konut;
+
   let btcBugün = null;
   if (d.btc) {
     const btcAdet = (miktar / d.usd) / d.btc;
@@ -422,7 +502,8 @@ function hesapla() {
   const yatirimSecenekleri = [
     { ad: 'Dolar', deger: dolarBugün },
     { ad: 'Altın', deger: altinBugün },
-    { ad: 'Gümüş', deger: gumusBugün }
+    { ad: 'Gümüş', deger: gumusBugün },
+    { ad: 'Konut', deger: evBugün }
   ];
   if (btcBugün) yatirimSecenekleri.push({ ad: 'BTC', deger: btcBugün });
   const enIyi = yatirimSecenekleri.reduce((a, b) => b.deger > a.deger ? b : a);
@@ -432,7 +513,7 @@ function hesapla() {
   const iphone = 70000;
   const tatil = 20000;
 
-  _state = { miktar, yil, bugunEsit, kayip, dolarBugün, altinBugün, gumusBugün, btcBugün, kayipTL, enIyi };
+  _state = { miktar, yil, bugunEsit, kayip, dolarBugün, altinBugün, gumusBugün, btcBugün, evBugün, evM2, kayipTL, enIyi };
 
   document.getElementById('bugunDeger').textContent = fmt(bugunEsit);
   document.getElementById('kayipBadge').textContent = `%${kayip} eridi`;
@@ -440,17 +521,17 @@ function hesapla() {
     `${yil} yılında ${miktar.toLocaleString('tr-TR')} TL olan birikimin, enflasyon nedeniyle bugün sadece ${fmt(bugunEsit)} değerinde.`;
 
   document.getElementById('dolarDeger').textContent = fmt(dolarBugün);
-  document.getElementById('dolarKat').textContent = 'x' + (dolarBugün/miktar).toFixed(1) + ' kat';
+  document.getElementById('dolarKat').textContent = fmtKat(dolarBugün/miktar);
 
   document.getElementById('altinDeger').textContent = fmt(altinBugün);
-  document.getElementById('altinKat').textContent = 'x' + (altinBugün/miktar).toFixed(1) + ' kat';
+  document.getElementById('altinKat').textContent = fmtKat(altinBugün/miktar);
 
   document.getElementById('gumusDeger').textContent = fmt(gumusBugün);
-  document.getElementById('gumusKat').textContent = 'x' + (gumusBugün/miktar).toFixed(1) + ' kat';
+  document.getElementById('gumusKat').textContent = fmtKat(gumusBugün/miktar);
 
   if (btcBugün) {
     document.getElementById('btcDeger').textContent = fmt(btcBugün);
-    document.getElementById('btcKat').textContent = 'x' + Math.round(btcBugün/miktar).toLocaleString('tr-TR') + ' kat';
+    document.getElementById('btcKat').textContent = fmtKat(btcBugün/miktar);
     document.getElementById('btcBarRow').style.display = 'flex';
   } else {
     document.getElementById('btcDeger').textContent = 'N/A';
@@ -458,7 +539,13 @@ function hesapla() {
     document.getElementById('btcBarRow').style.display = 'none';
   }
 
-  const vals = [1/d.enfKayip, dolarBugün/miktar, altinBugün/miktar, gumusBugün/miktar, btcBugün ? btcBugün/miktar : 0];
+
+  document.getElementById('evDeger').textContent = fmt(evBugün);
+  document.getElementById('evKat').textContent = fmtKat(evBugün/miktar);
+  document.getElementById('evMetin').innerHTML =
+    `${yil} yılında bu parayla yaklaşık <strong>${fmtM2(evM2)}</strong> konut payı alabiliyordun. Aynı pay bugün yaklaşık <strong>${fmt(evBugün)}</strong> ediyor.`;
+
+  const vals = [1/d.enfKayip, dolarBugün/miktar, altinBugün/miktar, gumusBugün/miktar, evBugün/miktar, btcBugün ? btcBugün/miktar : 0];
   const maxVal = Math.max(...vals);
 
   setTimeout(() => {
@@ -468,26 +555,26 @@ function hesapla() {
     const silverPct = Math.min(100, (gumusBugün/miktar) / maxVal * 100);
 
     document.getElementById('bTL').style.width = tlPct + '%';
-    document.getElementById('bTLt').textContent = (1/d.enfKayip).toFixed(2) + 'x';
+    document.getElementById('bTLt').textContent = fmtBarKat(1/d.enfKayip);
 
     document.getElementById('bUSD').style.width = usdPct + '%';
-    document.getElementById('bUSDt').textContent = (dolarBugün/miktar).toFixed(1) + 'x';
+    document.getElementById('bUSDt').textContent = fmtBarKat(dolarBugün/miktar);
 
     document.getElementById('bGold').style.width = goldPct + '%';
-    document.getElementById('bGoldt').textContent = (altinBugün/miktar).toFixed(1) + 'x';
+    document.getElementById('bGoldt').textContent = fmtBarKat(altinBugün/miktar);
 
     document.getElementById('bSilver').style.width = silverPct + '%';
-    document.getElementById('bSilvert').textContent = (gumusBugün/miktar).toFixed(1) + 'x';
+    document.getElementById('bSilvert').textContent = fmtBarKat(gumusBugün/miktar);
 
     if (btcBugün) {
       const btcPct = Math.min(100, (btcBugün/miktar) / maxVal * 100);
       document.getElementById('bBTC').style.width = btcPct + '%';
-      document.getElementById('bBTCt').textContent = Math.round(btcBugün/miktar) + 'x';
+      document.getElementById('bBTCt').textContent = fmtBarKat(btcBugün/miktar);
     }
   }, 80);
 
   document.getElementById('yorum').innerHTML =
-    `${yil} yılındaki <strong>${miktar.toLocaleString('tr-TR')} TL</strong>'nin satın alma gücünün <strong>%${kayip}'si</strong> bugüne kadar eridi. Dolarda tutsaydın <strong>${fmt(dolarBugün)}</strong>, altında tutsaydın <strong>${fmt(altinBugün)}</strong>, gümüşte tutsaydın <strong>${fmt(gumusBugün)}</strong>${btcBugün ? `, BTC'de tutsaydın <strong>${fmt(btcBugün)}</strong>` : ''} olurdu. En iyi sonuç <strong>${enIyi.ad}</strong> olurdu.`;
+    `${yil} yılındaki <strong>${miktar.toLocaleString('tr-TR')} TL</strong>'nin satın alma gücünün <strong>%${kayip}'si</strong> bugüne kadar eridi. Dolarda tutsaydın <strong>${fmt(dolarBugün)}</strong>, altında tutsaydın <strong>${fmt(altinBugün)}</strong>, gümüşte tutsaydın <strong>${fmt(gumusBugün)}</strong>, konuta yönelseydin <strong>${fmt(evBugün)}</strong>${btcBugün ? `, BTC'de tutsaydın <strong>${fmt(btcBugün)}</strong>` : ''} olurdu. En iyi sonuç <strong>${enIyi.ad}</strong> olurdu.`;
 
   const kiraAdet = Math.floor(kayipTL / kira);
   const iphoneAdet = Math.floor(kayipTL / iphone);
@@ -511,17 +598,22 @@ function hesapla() {
 
 function paylasTweet() {
   if (!_state) return;
-  const { miktar, yil, bugunEsit, kayip, dolarBugün, altinBugün, gumusBugün, btcBugün } = _state;
+  const { miktar, yil, bugunEsit, kayip, dolarBugün, altinBugün, gumusBugün, btcBugün, evBugün } = _state;
 
-  const text = `${yil}'da ${miktar.toLocaleString('tr-TR')} TL birikimim vardı.
+  const text = `Bir zamanlar ${yil}'da elimde ${miktar.toLocaleString('tr-TR')} TL vardı.
 
-Bugünkü satın alma gücü: ${fmt(bugunEsit)} (%${kayip} eridi)
-Dolarda tutsaydım: ${fmt(dolarBugün)}
-Altında tutsaydım: ${fmt(altinBugün)}
-Gümüşte tutsaydım: ${fmt(gumusBugün)}${btcBugün ? `
-BTC'de tutsaydım: ${fmt(btcBugün)}` : ''}
+Bugün aynı paranın satın alma gücü sadece ${fmt(bugunEsit)}.
+Yani paramın %${kayip}'si sessizce eridi.
 
-#TL #Enflasyon #Ekonomi
+Dolarda dursaydı: ${fmt(dolarBugün)}
+Altında dursaydı: ${fmt(altinBugün)}
+Gümüşte dursaydı: ${fmt(gumusBugün)}
+Evde dursaydı: ${fmt(evBugün)}${btcBugün ? `
+BTC'de dursaydı: ${fmt(btcBugün)}` : ''}
+
+TL'de beklemek birikim yapmak değilmiş.
+
+#TL #Enflasyon #Ekonomi #Konut
 https://omerbayrakli.github.io/tl-hesaplayici/`;
 
   window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(text), '_blank');
