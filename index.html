@@ -220,9 +220,6 @@ h1 em { font-style: italic; color: var(--accent); }
 /* FOOTER */
 .footer { margin-top:3rem; padding-top:1.5rem; border-top:1px solid var(--border); font-size:12px; color:var(--muted); line-height:1.8; }
 
-/* HIDDEN CANVAS */
-#shareCanvas { display:none; }
-
 @media(max-width:600px){
   .page { padding: 1.5rem 1rem 4rem; }
   h1 { font-size: 2.4rem; }
@@ -332,11 +329,11 @@ h1 em { font-style: italic; color: var(--accent); }
       <p class="yorum-text" id="yorum"></p>
     </div>
 
-    <button class="share-btn" onclick="paylasGorsel()">
+    <button class="share-btn" onclick="paylasTweet()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-      Görsel Oluştur ve Paylaş
+      Tweet At
     </button>
-    <p class="share-note" id="shareNote">Masaüstünde görsel indirilir · Mobilde direkt Twitter açılır</p>
+    <p class="share-note" id="shareNote">Twitter paylaşım ekranı açılır.</p>
 
   </div>
 
@@ -346,7 +343,6 @@ h1 em { font-style: italic; color: var(--accent); }
   </div>
 </div>
 
-<canvas id="shareCanvas"></canvas>
 
 <script>
 // enf = o yıldan 2025'e kadar TL'nin kaç kata bölünerek değer kaybettiği
@@ -459,179 +455,21 @@ function hesapla() {
   setTimeout(() => r.scrollIntoView({ behavior:'smooth', block:'start' }), 50);
 }
 
-function paylasGorsel() {
+function paylasTweet() {
   if (!_state) return;
   const { miktar, yil, bugunEsit, kayip, dolarBugün, altinBugün, btcBugün } = _state;
 
-  const W = 1200, H = 630;
-  const canvas = document.getElementById('shareCanvas');
-  canvas.width = W; canvas.height = H;
-  const ctx = canvas.getContext('2d');
+  const text = `${yil}'da ${miktar.toLocaleString('tr-TR')} TL birikimim vardı.
 
-  // BG gradient — warm cream
-  const grad = ctx.createLinearGradient(0,0,W,H);
-  grad.addColorStop(0, '#F5F0E8');
-  grad.addColorStop(1, '#EDE4D4');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0,0,W,H);
+Bugünkü satın alma gücü: ${fmt(bugunEsit)} (%${kayip} eridi)
+Dolarda tutsaydım: ${fmt(dolarBugün)}
+Altında tutsaydım: ${fmt(altinBugün)}${btcBugün ? `\nBTC'de tutsaydım: ${fmt(btcBugün)}` : ''}
 
-  // subtle grid lines
-  ctx.strokeStyle = 'rgba(26,24,20,0.06)';
-  ctx.lineWidth = 1;
-  for (let x=0; x<W; x+=60) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
-  for (let y=0; y<H; y+=60) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+#TL #Enflasyon #Ekonomi
+https://omerbayrakli.github.io/tl-hesaplayici/`;
 
-  // left dark panel
-  ctx.fillStyle = '#1A1814';
-  roundRect(ctx, 40, 40, 520, H-80, 24);
-  ctx.fill();
-
-  // tag
-  ctx.fillStyle = 'rgba(200,75,49,0.25)';
-  roundRect(ctx, 72, 72, 180, 32, 16);
-  ctx.fill();
-  ctx.fillStyle = '#C84B31';
-  ctx.font = '500 11px DM Sans, sans-serif';
-  ctx.letterSpacing = '0.12em';
-  ctx.fillText('EKONOMİK GERÇEKLİK', 88, 93);
-
-  // big title
-  ctx.fillStyle = '#FFFFFF';
-  ctx.font = '700 72px Georgia, serif';
-  ctx.fillText('TL', 72, 180);
-  ctx.fillStyle = '#C84B31';
-  ctx.font = 'italic 700 72px Georgia, serif';
-  ctx.fillText('Hafıza', 72, 258);
-  ctx.fillStyle = '#FFFFFF';
-  ctx.font = '700 72px Georgia, serif';
-  ctx.fillText('Makinesi', 72, 336);
-
-  // divider
-  ctx.strokeStyle = 'rgba(255,255,255,0.12)';
-  ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(72, 365); ctx.lineTo(480, 365); ctx.stroke();
-
-  // input info
-  ctx.fillStyle = 'rgba(255,255,255,0.45)';
-  ctx.font = '300 16px DM Sans, sans-serif';
-  ctx.fillText(yil + ' yılında ' + miktar.toLocaleString('tr-TR') + ' TL', 72, 400);
-
-  // big loss
-  ctx.fillStyle = '#FF7B5E';
-  ctx.font = '500 14px DM Sans, sans-serif';
-  ctx.fillText('BUGÜNKÜ SATIN ALMA GÜCÜ', 72, 445);
-  ctx.fillStyle = '#FFFFFF';
-  ctx.font = '700 42px Georgia, serif';
-  ctx.fillText(fmt(bugunEsit), 72, 495);
-
-  // kayip badge
-  ctx.fillStyle = 'rgba(200,75,49,0.3)';
-  roundRect(ctx, 72, 515, 160, 34, 17);
-  ctx.fill();
-  ctx.fillStyle = '#FF8A75';
-  ctx.font = '500 15px DM Sans, sans-serif';
-  ctx.fillText('%' + kayip + ' eridi', 90, 537);
-
-  // watermark
-  ctx.fillStyle = 'rgba(255,255,255,0.2)';
-  ctx.font = '300 13px DM Sans, sans-serif';
-  ctx.fillText('tl-hafiza-makinesi', 72, H-52);
-
-  // RIGHT PANEL — comparison cards
-  const cx = 600, cy = 80;
-  const cards = [
-    { icon:'💵', label:'Dolar', value: fmt(dolarBugün), kat: 'x'+(dolarBugün/miktar).toFixed(1), color:'#1565C0', bg:'#E8F0FE' },
-    { icon:'🥇', label:'Altın', value: fmt(altinBugün), kat: 'x'+(altinBugün/miktar).toFixed(1), color:'#F9A825', bg:'#FFF8E1' },
-    { icon:'₿', label:'BTC', value: btcBugün ? fmt(btcBugün) : 'N/A', kat: btcBugün ? 'x'+Math.round(btcBugün/miktar).toLocaleString('tr-TR') : '—', color:'#2D6A4F', bg:'#E8F5E9' },
-  ];
-
-  cards.forEach((c, i) => {
-    const cx2 = 600 + (i % 2) * 290;
-    const cy2 = 80 + Math.floor(i / 2) * 170;
-    ctx.fillStyle = '#FFFFFF';
-    roundRect(ctx, cx2, cy2, 268, 148, 16);
-    ctx.fill();
-
-    ctx.font = '32px serif';
-    ctx.fillText(c.icon, cx2+20, cy2+50);
-
-    ctx.fillStyle = '#8A8680';
-    ctx.font = '400 12px DM Sans, sans-serif';
-    ctx.fillText(c.label.toUpperCase(), cx2+20, cy2+80);
-
-    ctx.fillStyle = c.color;
-    ctx.font = '700 22px Georgia, serif';
-    ctx.fillText(c.value, cx2+20, cy2+112);
-
-    ctx.fillStyle = '#8A8680';
-    ctx.font = '400 13px DM Sans, sans-serif';
-    ctx.fillText(c.kat, cx2+20, cy2+134);
-  });
-
-  // bottom right — bar chart mini
-  const bx = 600, by = 410;
-  ctx.fillStyle = '#FFFFFF';
-  roundRect(ctx, bx, by, 548, 180, 16);
-  ctx.fill();
-
-  ctx.fillStyle = '#8A8680';
-  ctx.font = '400 12px DM Sans, sans-serif';
-  ctx.fillText('DEĞER KORUMA KARŞILAŞTIRMASI', bx+20, by+28);
-
-  const bars2 = [
-    { label:'TL', val: 1/DATA[yil].enfKayip, color:'#C84B31' },
-    { label:'Dolar', val: dolarBugün/miktar, color:'#1565C0' },
-    { label:'Altın', val: altinBugün/miktar, color:'#F9A825' },
-  ];
-  if (btcBugün) bars2.push({ label:'BTC', val: btcBugün/miktar, color:'#2D6A4F' });
-
-  const maxB = Math.max(...bars2.map(b=>b.val));
-  bars2.forEach((b, i) => {
-    const bby = by + 50 + i * 30;
-    ctx.fillStyle = '#8A8680';
-    ctx.font = '400 11px DM Sans, sans-serif';
-    ctx.fillText(b.label, bx+20, bby+14);
-    const trackW = 380, trackX = bx+80;
-    ctx.fillStyle = '#F5F0E8';
-    roundRect(ctx, trackX, bby, trackW, 18, 9);
-    ctx.fill();
-    const fillW = Math.max(8, (b.val/maxB) * trackW);
-    ctx.fillStyle = b.color;
-    roundRect(ctx, trackX, bby, fillW, 18, 9);
-    ctx.fill();
-    ctx.fillStyle = '#1A1814';
-    ctx.font = '500 11px DM Sans, sans-serif';
-    ctx.fillText(b.val >= 100 ? Math.round(b.val)+'x' : b.val.toFixed(2)+'x', trackX + trackW + 10, bby+13);
-  });
-
-  const text = `${yil}'da ${miktar.toLocaleString('tr-TR')} TL birikimim vardı.\n\nBugünkü satın alma gücü: ${fmt(bugunEsit)} (%${kayip} eridi)\nDolarda tutsaydım: ${fmt(dolarBugün)}\n\n#TL #Enflasyon #Ekonomi`;
-  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-  if (isMobile) {
-    // Mobilde direkt Twitter'a yönlendir
-    window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(text), '_blank');
-    document.getElementById('shareNote').textContent = 'Twitter açıldı! Görseli masaüstünden indirebilirsin.';
-  } else {
-    // Masaüstünde görseli indir + Twitter aç
-    const dataUrl = canvas.toDataURL('image/png');
-    const a = document.createElement('a');
-    a.href = dataUrl;
-    a.download = 'tl-hafiza-' + yil + '.png';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    document.getElementById('shareNote').textContent = 'Görsel indirildi! Twitter\'a ekleyip paylaşabilirsin.';
-    setTimeout(() => window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(text), '_blank'), 600);
-  }
-}
-
-function roundRect(ctx, x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.moveTo(x+r, y);
-  ctx.lineTo(x+w-r, y); ctx.quadraticCurveTo(x+w, y, x+w, y+r);
-  ctx.lineTo(x+w, y+h-r); ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
-  ctx.lineTo(x+r, y+h); ctx.quadraticCurveTo(x, y+h, x, y+h-r);
-  ctx.lineTo(x, y+r); ctx.quadraticCurveTo(x, y, x+r, y);
-  ctx.closePath();
+  window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(text), '_blank');
+  document.getElementById('shareNote').textContent = 'Twitter paylaşım ekranı açıldı!';
 }
 
 document.getElementById('miktar').addEventListener('keydown', e => { if(e.key==='Enter') hesapla(); });
