@@ -12,8 +12,8 @@
         <div class="header">
             <span class="tag">Ekonomik Gerçeklik</span>
             <h1>TL <em>Hafıza</em><br>Makinesi</h1>
-            <p class="desc">Paranızın satın alma gücünün zaman içinde nasıl eridiğini görün. Borsa, altın, döviz ve BTC ile karşılaştırın.</p>
-            <span class="live-badge" id="liveBadge">Veriler yükleniyor...</span>
+            <p class="desc">Paranızın satın alma gücünün zaman içinde nasıl eridiğini görün. Dolar, altın, gümüş, BTC ve konutla karşılaştırın.</p>
+            <span class="live-badge" id="liveBadge">Canlı veriler bekleniyor…</span>
         </div>
 
         <div class="card">
@@ -46,8 +46,8 @@
             <div class="loss-card" id="lossCard">
                 <div class="card-share-row">
                     <button class="widget-share-btn">
-                        <svg viewBox="0 0 24 24" fill="currentColor" width="12"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                        <span>X'te paylaş</span>
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                        <span class="btn-txt">X'te paylaş</span>
                     </button>
                 </div>
                 <div class="loss-top">
@@ -61,29 +61,32 @@
             </div>
 
             <div class="compare-grid">
-                <div class="ccard">
-                    <div class="icon">📈</div><div class="clabel">BIST 100</div>
-                    <div class="cvalue bistup" id="bistDeger">—</div>
-                </div>
-                <div class="ccard">
-                    <div class="icon">🥇</div><div class="clabel">Altın (Gram)</div>
-                    <div class="cvalue up" id="altinDeger">—</div>
-                </div>
-                <div class="ccard">
-                    <div class="icon">💵</div><div class="clabel">Dolar</div>
+                <div class="ccard" id="dolarWidget">
+                    <div class="share-row"><button class="widget-share-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></button></div>
+                    <div class="icon">💵</div><div class="clabel">Dolarda tutsaydın</div>
                     <div class="cvalue up" id="dolarDeger">—</div>
                 </div>
-                <div class="ccard">
-                    <div class="icon">₿</div><div class="clabel">Bitcoin</div>
-                    <div class="cvalue btcup" id="btcDeger">—</div>
+                <div class="ccard" id="altinWidget">
+                    <div class="share-row"><button class="widget-share-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></button></div>
+                    <div class="icon">🥇</div><div class="clabel">Altında tutsaydın</div>
+                    <div class="cvalue up" id="altinDeger">—</div>
                 </div>
-                <div class="ccard">
-                    <div class="icon">🥈</div><div class="clabel">Gümüş (Gram)</div>
+                <div class="ccard" id="gumusWidget">
+                    <div class="share-row"><button class="widget-share-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></button></div>
+                    <div class="icon">🥈</div><div class="clabel">Gümüşte tutsaydın</div>
                     <div class="cvalue silverup" id="gumusDeger">—</div>
+                </div>
+                <div class="ccard" id="btcWidget">
+                    <div class="share-row"><button class="widget-share-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></button></div>
+                    <div class="icon">₿</div><div class="clabel">BTC'de tutsaydın</div>
+                    <div class="cvalue btcup" id="btcDeger">—</div>
                 </div>
             </div>
 
-            <div class="house-card">
+            <div class="house-card" id="houseWidget">
+                <div class="card-share-row">
+                    <button class="widget-share-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></button>
+                </div>
                 <div class="house-top">
                     <div><div class="house-title">Ev alsaydın ne olurdu?</div><div class="house-value" id="evDeger">—</div></div>
                 </div>
@@ -93,12 +96,16 @@
             <div class="yorum-card"><p class="yorum-text" id="yorum"></p></div>
             <div class="yorum-card"><p class="yorum-text" id="gercekHayat"></p></div>
 
-            <button class="share-btn" id="tweetAllBtn">X'te Paylaş (Mizah Dahil)</button>
+            <button class="share-btn" id="tweetAllBtn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                Sonuçları Paylaş
+            </button>
+            <p class="share-note" id="shareNote">Paylaş butonu rastgele mizahi bir metin oluşturur ve X'i açar.</p>
         </div>
 
         <div class="footer">
             <div class="last-update" id="lastUpdate">Son Güncelleme: --:--</div>
-            <p>* Veriler yaklaşık tarihsel ortalamalardır. Yatırım tavsiyesi değildir.</p>
+            <p>* Yaklaşık tarihsel veriler kullanılmıştır (TCMB, TÜİK). Yatırım tavsiyesi değildir.</p>
         </div>
     </div>
     <script src="assets/js/script.js"></script>
