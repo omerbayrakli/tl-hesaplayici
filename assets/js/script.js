@@ -25,18 +25,14 @@ const DATA = {
 
 let BUGUN = {usd:42.0, altin:4550, gumus:45.0, btc:95000, konut:58000};
 const STATIC_BUGUN = {...BUGUN};
-const SITE_URL = window.location.href;
+const SITE_URL = "tl-hafiza.vercel.app"; 
 let _state = null;
 
-// Formatter Helpers
 const fmt = (n) => {
     if(n>=1e9) return (n/1e9).toFixed(1) + ' Milyar TL';
     if(n>=1e6) return (n/1e6).toFixed(1) + ' Milyon TL';
     return Math.round(n).toLocaleString('tr-TR') + ' TL';
 };
-const fmtKat = (n) => (!isFinite(n) ? '—' : 'x' + (n<10 ? n.toFixed(2) : Math.round(n).toLocaleString('tr-TR')) + ' kat');
-const fmtBar = (n) => (!isFinite(n) ? '—' : (n<10 ? n.toFixed(2) : Math.round(n).toLocaleString('tr-TR')) + 'x');
-const fmtM2 = (n) => n.toFixed(1) + ' m²';
 
 const updateBadge = (msg, ok=true) => {
     const b = document.getElementById('liveBadge');
@@ -73,7 +69,6 @@ async function yukleCanli() {
 }
 
 function hesapla() {
-    // Noktaları temizleyip sayıya çeviriyoruz
     const miktarRaw = document.getElementById('miktar').value.replace(/\./g, "");
     const miktar = parseFloat(miktarRaw);
     const yil = parseInt(document.getElementById('yil').value);
@@ -81,8 +76,6 @@ function hesapla() {
     if(!miktar || miktar <= 0) { document.getElementById('miktar').focus(); return; }
     
     const d = DATA[yil];
-    if(!d) return;
-
     const bugunEsit = miktar / d.enfKayip;
     const kayip = ((1 - 1/d.enfKayip) * 100).toFixed(0);
     const dolarBugün = (miktar/d.usd) * BUGUN.usd;
@@ -103,120 +96,68 @@ function hesapla() {
     document.getElementById('bugunDeger').textContent = fmt(bugunEsit);
     document.getElementById('kayipBadge').textContent = `%${kayip} eridi`;
     document.getElementById('lossDesc').textContent = `${yil} yılında ${miktar.toLocaleString('tr-TR')} TL olan birikimin, bugün sadece ${fmt(bugunEsit)} değerinde.`;
-    
     document.getElementById('dolarDeger').textContent = fmt(dolarBugün);
-    document.getElementById('dolarKat').textContent = fmtKat(dolarBugün/miktar);
     document.getElementById('altinDeger').textContent = fmt(altinBugün);
-    document.getElementById('altinKat').textContent = fmtKat(altinBugün/miktar);
     document.getElementById('gumusDeger').textContent = fmt(gumusBugün);
-    document.getElementById('gumusKat').textContent = fmtKat(gumusBugün/miktar);
-
+    document.getElementById('evDeger').textContent = fmt(evBugün);
+    
+    const btcNode = document.getElementById('btcDeger');
     if(btcBugün) {
-        document.getElementById('btcDeger').textContent = fmt(btcBugün);
-        document.getElementById('btcKat').textContent = fmtKat(btcBugün/miktar);
-        document.getElementById('btcBarRow').style.display = 'flex';
+        btcNode.textContent = fmt(btcBugün);
+        document.getElementById('btcWidget').style.display = 'flex';
     } else {
-        document.getElementById('btcDeger').textContent = 'N/A';
-        document.getElementById('btcKat').textContent = yil < 2010 ? 'BTC yoktu' : '—';
-        document.getElementById('btcBarRow').style.display = 'none';
+        document.getElementById('btcWidget').style.display = 'none';
     }
 
-    document.getElementById('evDeger').textContent = fmt(evBugün);
-    document.getElementById('evKat').textContent = fmtKat(evBugün/miktar);
-    document.getElementById('evMetin').innerHTML = `${yil} yılında bu parayla yaklaşık <strong>${fmtM2(evM2)}</strong> konut payı alabiliyordun. Aynı pay bugün yaklaşık <strong>${fmt(evBugün)}</strong> ediyor.`;
-
-    const maxVal = Math.max(1/d.enfKayip, dolarBugün/miktar, altinBugün/miktar, gumusBugün/miktar, evBugün/miktar, btcBugün ? btcBugün/miktar : 0);
-    setTimeout(() => {
-        const s = (id, tid, val) => {
-            const el = document.getElementById(id);
-            const tel = document.getElementById(tid);
-            if(el) { el.style.width = Math.max(2, val/maxVal * 100) + '%'; tel.textContent = fmtBar(val); }
-        };
-        s('bTL','bTLt',1/d.enfKayip); s('bUSD','bUSDt',dolarBugün/miktar); s('bGold','bGoldt',altinBugün/miktar);
-        s('bSilver','bSilvert',gumusBugün/miktar); if(btcBugün) s('bBTC','bBTCt',btcBugün/miktar);
-    }, 80);
-
+    document.getElementById('evMetin').innerHTML = `${yil} yılında bu parayla yaklaşık <strong>${evM2.toFixed(1)} m²</strong> konut payı alabiliyordun. Bugün aynı pay <strong>${fmt(evBugün)}</strong> ediyor.`;
     document.getElementById('yorum').innerHTML = `${yil} yılındaki <strong>${miktar.toLocaleString('tr-TR')} TL</strong>'nin satın alma gücünün <strong>%${kayip}'si</strong> eridi. En iyi sonuç <strong>${enIyi.ad}</strong> olurdu.`;
     
-    const kiraAdet = Math.floor(kayipTL/15000), ipAdet = Math.floor(kayipTL/70000), tatAdet = Math.floor(kayipTL/20000);
-    const p = [];
-    if(kiraAdet > 0) p.push(`<strong>${kiraAdet} kira</strong>`);
-    if(ipAdet > 0) p.push(`<strong>${ipAdet} iPhone</strong>`);
-    if(tatAdet > 0) p.push(`<strong>${tatAdet} tatil</strong>`);
-    
-    document.getElementById('gercekHayat').innerHTML = p.length 
-        ? `Bu erimeyle yaklaşık <strong>${fmt(kayipTL)}</strong> kaybettin. Bu parayla bugün ${p.join(', ')} alabilirdin.` 
+    const ipAdet = Math.floor(kayipTL/75000);
+    document.getElementById('gercekHayat').innerHTML = ipAdet > 0 
+        ? `Bu erimeyle yaklaşık <strong>${fmt(kayipTL)}</strong> kaybettin. Bu parayla bugün <strong>${ipAdet} tane iPhone</strong> alabilirdin.` 
         : `Bu erimeyle yaklaşık <strong>${fmt(kayipTL)}</strong> kaybettin.`;
 
     document.getElementById('results').classList.add('show');
     setTimeout(() => document.getElementById('results').scrollIntoView({behavior:'smooth', block:'start'}), 50);
 }
 
-function buildTweet(wid) {
+function getKomediliTweet() {
     if(!_state) return "";
-    const {miktar, yil, kayip, bugunEsit, dolarBugün, altinBugün, evBugün, btcBugün, enIyi} = _state;
-    const base = `${SITE_URL}\n#TL #Enflasyon #Ekonomi`;
-    if(!wid) return `${yil}'te ${miktar.toLocaleString('tr-TR')} TL birikimim vardı.\n\nBugün değeri: ${fmt(bugunEsit)} (%${kayip} eridi).\n\nEn iyi: ${enIyi.ad}\n\n${base}`;
-    return `TL Hafıza Makinesi Sonuçları\n${base}`;
+    const {miktar, yil, kayip, bugunEsit, enIyi} = _state;
+    const espriler = [
+        `${yil} yılında kenara ${miktar.toLocaleString('tr-TR')} TL atmıştım. Bugün o parayla sadece 1 porsiyon "ekonomik gerçeklik" yiyebiliyorum. Satın alma gücüm %${kayip} erimiş...`,
+        `${yil}'te ${miktar.toLocaleString('tr-TR')} TL birikimim vardı. Bugün o para ${fmt(bugunEsit)} ediyor. O gün ${enIyi.ad} alsaydım şimdi Londra'daydım, şu an metrobüs bekliyorum.`,
+        "Bir dram hikayesi:\n" + `${yil} birikimi: ${miktar.toLocaleString('tr-TR')} TL\nBugünkü karşılığı: ${fmt(bugunEsit)}\n\nSen de ağlamak istersen: ${SITE_URL}`,
+        `${yil} yılında bu parayı yastık altına değil de ${enIyi.ad}'a koysaydım bugün hayatım bir başarı hikayesiydi. Neyse, sağlık olsun...`
+    ];
+    return espriler[Math.floor(Math.random() * espriler.length)];
 }
 
-async function shareWidget(wid) {
+function shareOnTwitter() {
     if(!_state) return;
-    const note = document.getElementById('shareNote');
-    const tweet = buildTweet(wid);
-    const el = document.getElementById(wid);
-    note.textContent = 'Görsel oluşturuluyor…';
-    
-    try {
-        const canvas = await html2canvas(el, {
-            backgroundColor: null, scale: 2, useCORS: true, logging: false,
-            ignoreElements: n => n.classList && (n.classList.contains('widget-share-btn') || n.classList.contains('share-row') || n.classList.contains('card-share-row'))
-        });
-        
-        if(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) && navigator.share) {
-            canvas.toBlob(async blob => {
-                const file = new File([blob], 'tl-hafiza.png', {type: 'image/png'});
-                await navigator.share({files: [file], text: tweet});
-                note.textContent = 'Paylaşım açıldı.';
-            });
-        } else {
-            const dataUrl = canvas.toDataURL('image/png');
-            const a = document.createElement('a');
-            a.href = dataUrl; a.download = `tl-hafiza-${_state.yil}.png`;
-            document.body.appendChild(a); a.click(); document.body.removeChild(a);
-            note.textContent = '✓ Görsel indirildi! X açılıyor…';
-            setTimeout(() => window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(tweet), '_blank'), 700);
-        }
-    } catch(err) { window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(tweet), '_blank'); }
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(getKomediliTweet())}`, '_blank');
 }
 
-// Binlik Ayırıcı Maskesi ve Event Listeners
+function setLastUpdate() {
+    const updateTime = "13.04.2026 - 16:30"; 
+    const el = document.getElementById('lastUpdate');
+    if(el) el.textContent = `Son Güncelleme: ${updateTime}`;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     yukleCanli();
+    setLastUpdate();
     
     const miktarInput = document.getElementById('miktar');
-    
-    // Yazarken formatlama
     miktarInput.addEventListener('input', function(e) {
         let value = e.target.value.replace(/\D/g, "");
-        if (value !== "") {
-            e.target.value = Number(value).toLocaleString('tr-TR');
-        } else {
-            e.target.value = "";
-        }
+        if (value !== "") e.target.value = Number(value).toLocaleString('tr-TR');
+        else e.target.value = "";
     });
 
     document.getElementById('calcBtn').addEventListener('click', hesapla);
-    document.getElementById('tweetAllBtn').addEventListener('click', () => {
-        if(_state) window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(buildTweet(null)), '_blank');
+    document.querySelectorAll('.widget-share-btn, .share-btn').forEach(btn => {
+        btn.addEventListener('click', shareOnTwitter);
     });
-
-    document.querySelectorAll('.widget-share-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const wid = e.currentTarget.getAttribute('data-widget');
-            shareWidget(wid);
-        });
-    });
-
     miktarInput.addEventListener('keydown', e => { if(e.key === 'Enter') hesapla(); });
 });
