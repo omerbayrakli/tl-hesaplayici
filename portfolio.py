@@ -328,7 +328,7 @@ if __name__ == "__main__":
                 break
         except ValueError:
             pass
-        print("  Geçersiz yıl, tekrar dene.")
+        print("  Gecersiz yil, tekrar dene.")
 
     # Dağılım
     dagitim = dagitim_al()
