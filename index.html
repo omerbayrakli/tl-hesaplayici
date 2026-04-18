@@ -19,8 +19,20 @@
   --accent: #C84B31; --accent2: #2D6A4F; --accent3: #1565C0;
   --border: rgba(26,24,20,0.1); --shadow: 0 2px 24px rgba(26,24,20,0.08);
 }
-* { margin:0; padding:0; box-sizing:border-box; }
-body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; min-height:100vh; }
+/* ── TICKER BAR ── */
+.ticker-wrap { position:fixed; top:0; left:0; right:0; z-index:100; background:#1A1814; height:36px; overflow:hidden; border-bottom:1px solid rgba(255,255,255,0.06); }
+.ticker-inner { display:flex; align-items:center; height:100%; white-space:nowrap; animation:ticker 40s linear infinite; }
+.ticker-inner:hover { animation-play-state:paused; }
+.ticker-item { display:inline-flex; align-items:center; gap:6px; padding:0 24px; font-size:12px; font-weight:500; color:rgba(255,255,255,0.7); flex-shrink:0; }
+.ticker-item .tname { color:rgba(255,255,255,0.4); font-size:11px; }
+.ticker-item .tval { color:#fff; }
+.ticker-item .tup { color:#4caf7d; }
+.ticker-item .tdown { color:#ff6b6b; }
+.ticker-sep { color:rgba(255,255,255,0.15); padding:0 4px; }
+@keyframes ticker { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+body { padding-top:36px; }
+
+@media(max-width:600px){ .ticker-item { padding:0 16px; font-size:11px; } }
 .page { max-width:680px; margin:0 auto; padding:3rem 1.5rem 5rem; }
 
 .header { margin-bottom:2.5rem; }
@@ -89,6 +101,21 @@ h1 em { font-style:italic; color:var(--accent); }
 .bfill.btc    { background:linear-gradient(90deg,#81c784,#2D6A4F); }
 .bfill.silver { background:linear-gradient(90deg,#cfd8dc,#78909C); }
 .bfill.bist   { background:linear-gradient(90deg,#ce93d8,#7B1FA2); }
+
+/* SEKTÖR LİSTESİ */
+.sektor-row { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:0.5px solid var(--border); }
+.sektor-row:last-child { border-bottom:none; }
+.sektor-sol { display:flex; align-items:center; gap:10px; }
+.sektor-rank { font-family:'Fraunces',serif; font-size:1.1rem; font-weight:700; color:var(--muted); width:20px; }
+.sektor-ad { font-size:14px; font-weight:500; color:var(--text); }
+.sektor-sembol { font-size:11px; color:var(--muted); }
+.sektor-sag { text-align:right; }
+.sektor-getiri { font-family:'Fraunces',serif; font-size:1.2rem; font-weight:700; }
+.sektor-getiri.pos { color:var(--accent2); }
+.sektor-getiri.neg { color:var(--accent); }
+.sektor-gunluk { font-size:11px; margin-top:2px; }
+.sektor-gunluk.pos { color:var(--accent2); }
+.sektor-gunluk.neg { color:var(--accent); }
 
 /* HOUSE */
 .house-card { background:linear-gradient(135deg,#fff 0%,#f8f5ef 100%); border-radius:20px; box-shadow:var(--shadow); padding:1.75rem; margin-bottom:1.5rem; border:1px solid rgba(26,24,20,0.05); }
@@ -179,6 +206,38 @@ h1 em { font-style:italic; color:var(--accent); }
 </style>
 </head>
 <body>
+<!-- TICKER BAR -->
+<div class="ticker-wrap">
+  <div class="ticker-inner" id="tickerInner">
+    <div class="ticker-item"><span class="tname">USD/TRY</span><span class="tval" id="t-usd">—</span><span id="t-usd-d">—</span></div>
+    <span class="ticker-sep">·</span>
+    <div class="ticker-item"><span class="tname">EUR/TRY</span><span class="tval" id="t-eur">—</span><span id="t-eur-d">—</span></div>
+    <span class="ticker-sep">·</span>
+    <div class="ticker-item"><span class="tname">EUR/USD</span><span class="tval" id="t-eurusd">—</span></div>
+    <span class="ticker-sep">·</span>
+    <div class="ticker-item"><span class="tname">ALTIN/TL</span><span class="tval" id="t-gold">—</span><span id="t-gold-d">—</span></div>
+    <span class="ticker-sep">·</span>
+    <div class="ticker-item"><span class="tname">GÜMÜŞ/TL</span><span class="tval" id="t-silver">—</span></div>
+    <span class="ticker-sep">·</span>
+    <div class="ticker-item"><span class="tname">BTC/USD</span><span class="tval" id="t-btc">—</span><span id="t-btc-d">—</span></div>
+    <span class="ticker-sep">·</span>
+    <div class="ticker-item"><span class="tname">BIST-100</span><span class="tval" id="t-bist">—</span><span id="t-bist-d">—</span></div>
+    <!-- İkinci kopya — sonsuz döngü için -->
+    <div class="ticker-item"><span class="tname">USD/TRY</span><span class="tval" id="t-usd2">—</span><span id="t-usd-d2">—</span></div>
+    <span class="ticker-sep">·</span>
+    <div class="ticker-item"><span class="tname">EUR/TRY</span><span class="tval" id="t-eur2">—</span><span id="t-eur-d2">—</span></div>
+    <span class="ticker-sep">·</span>
+    <div class="ticker-item"><span class="tname">EUR/USD</span><span class="tval" id="t-eurusd2">—</span></div>
+    <span class="ticker-sep">·</span>
+    <div class="ticker-item"><span class="tname">ALTIN/TL</span><span class="tval" id="t-gold2">—</span><span id="t-gold-d2">—</span></div>
+    <span class="ticker-sep">·</span>
+    <div class="ticker-item"><span class="tname">GÜMÜŞ/TL</span><span class="tval" id="t-silver2">—</span></div>
+    <span class="ticker-sep">·</span>
+    <div class="ticker-item"><span class="tname">BTC/USD</span><span class="tval" id="t-btc2">—</span><span id="t-btc-d2">—</span></div>
+    <span class="ticker-sep">·</span>
+    <div class="ticker-item"><span class="tname">BIST-100</span><span class="tval" id="t-bist2">—</span><span id="t-bist-d2">—</span></div>
+  </div>
+</div>
 <div class="page">
 
   <div class="header">
@@ -256,6 +315,19 @@ h1 em { font-style:italic; color:var(--accent); }
         <div class="icon">📈</div><div class="clabel">BIST-100'de tutsaydın</div>
         <div class="cvalue bistup" id="bistDeger">—</div><div class="ckat" id="bistKat">—</div>
       </div>
+    </div>
+
+    <!-- BIST SEKTÖR KARTI -->
+    <div class="bar-card" id="sektorWidget" style="display:none;">
+      <div class="card-share-row">
+        <button class="widget-share-btn" onclick="shareWidget('sektorWidget')">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          <span class="btn-txt">X'te paylaş</span>
+        </button>
+      </div>
+      <div class="bar-title">En Çok Kazandıran BIST Sektörleri (Son 1 Yıl)</div>
+      <div id="sektorListesi"></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:0.75rem;">* Yıllık getiri. Kaynak: Yahoo Finance · GitHub Actions ile güncellenir.</div>
     </div>
 
     <div class="bar-card" id="barWidget">
@@ -575,6 +647,95 @@ document.getElementById('miktar').addEventListener('focus',e=>{
 });
 yukleCanli();
 
+// ── TICKER GÜNCELLEME ─────────────────────────────────────────────────────────
+function tickerSet(ids, val, degisim) {
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && val != null) el.textContent = typeof val === 'number' ? val.toLocaleString('tr-TR', {minimumFractionDigits:2,maximumFractionDigits:2}) : val;
+  });
+}
+function tickerDeg(ids, pct) {
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el || pct == null) return;
+    const cls = pct >= 0 ? 'tup' : 'tdown';
+    el.className = cls;
+    el.textContent = (pct >= 0 ? '▲' : '▼') + Math.abs(pct).toFixed(2) + '%';
+  });
+}
+
+async function yukleTickerEkstra() {
+  // EUR/TRY ve EUR/USD için open.er-api
+  try {
+    const r = await fetch('https://open.er-api.com/v6/latest/EUR', {cache:'no-store'}).then(r=>r.json()).catch(()=>null);
+    if (r?.rates) {
+      const eurTry = r.rates.TRY;
+      const eurUsd = r.rates.USD ? (1/r.rates.USD).toFixed(4) : null;
+      tickerSet(['t-eur','t-eur2'], eurTry);
+      tickerSet(['t-eurusd','t-eurusd2'], eurUsd);
+    }
+  } catch(e) {}
+
+  // BIST-100 — results.json'dan oku
+  try {
+    const r = await fetch('results.json?v='+Date.now(),{cache:'no-store'}).then(r=>r.json()).catch(()=>null);
+    if (r?.bist?.anlik) {
+      tickerSet(['t-bist','t-bist2'], r.bist.anlik);
+      tickerDeg(['t-bist-d','t-bist-d2'], r.bist.degisim);
+      // Ana DATA objesini de güncelle
+      Object.keys(DATA).forEach(y => { if(parseInt(y)>=2026) DATA[y].bist = r.bist.anlik; });
+      BUGUN.bist = r.bist.anlik;
+    }
+    // Sektörler
+    if (r?.sektor_top5?.length) {
+      yukleSektor(r.sektor_top5);
+    }
+  } catch(e) {}
+}
+
+function yukleSektor(sektorler) {
+  const kart = document.getElementById('sektorWidget');
+  const liste = document.getElementById('sektorListesi');
+  if (!kart || !liste || !sektorler?.length) return;
+  liste.innerHTML = sektorler.map((s, i) => `
+    <div class="sektor-row">
+      <div class="sektor-sol">
+        <span class="sektor-rank">${i+1}</span>
+        <div>
+          <div class="sektor-ad">${s.ad}</div>
+          <div class="sektor-sembol">${s.sembol}</div>
+        </div>
+      </div>
+      <div class="sektor-sag">
+        <div class="sektor-getiri ${s.getiri_1y>=0?'pos':'neg'}">${s.getiri_1y>=0?'+':''}${s.getiri_1y.toFixed(1)}%</div>
+        <div class="sektor-gunluk ${s.gunluk_degisim>=0?'pos':'neg'}">Bugün ${s.gunluk_degisim>=0?'+':''}${s.gunluk_degisim.toFixed(2)}%</div>
+      </div>
+    </div>`).join('');
+  kart.style.display = 'block';
+}
+
+// ticker'ı BUGUN verisiyle doldur (canlı veri geldikten sonra)
+function guncelTicker() {
+  const OTG = 31.1034768;
+  tickerSet(['t-usd','t-usd2'], BUGUN.usd);
+  if (BUGUN.altin) tickerSet(['t-gold','t-gold2'], Math.round(BUGUN.altin));
+  if (BUGUN.gumus) tickerSet(['t-silver','t-silver2'], BUGUN.gumus.toFixed(2));
+  if (BUGUN.btc)   tickerSet(['t-btc','t-btc2'], Math.round(BUGUN.btc).toLocaleString('tr-TR'));
+}
+
+// canlı veri yüklendikten sonra ticker'ı güncelle
+const _origYukle = yukleCanli;
+async function yukleCanliVeTicker() {
+  await _origYukle ? _origYukle() : null;
+  guncelTicker();
+  await yukleTickerEkstra();
+  // Her 5 dakikada bir güncelle
+  setInterval(async () => {
+    await yukleCanli();
+    guncelTicker();
+  }, 5 * 60 * 1000);
+}
+
 // ── EKONOMETRİ ANALİZ ────────────────────────────────────────────────────────
 let enfChartInst = null, usdChartInst = null;
 
@@ -698,6 +859,9 @@ async function yukleAnaliz() {
       yorum.innerHTML = `Enflasyon ile Dolar/TL arasında <strong>zayıf ilişki</strong> görünüyor (r = ${r}).`;
     }
 
+    // Sektörler
+    if (d.sektor_top5?.length) yukleSektor(d.sektor_top5);
+
   } catch(e) {
     document.getElementById('analizYukleniyor').textContent =
       'Analiz verileri henüz hazır değil. GitHub Actions çalıştıktan sonra burası dolacak.';
@@ -705,6 +869,7 @@ async function yukleAnaliz() {
   }
 }
 
+yukleCanliVeTicker();
 yukleAnaliz();
 </script>
 </body>

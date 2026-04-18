@@ -27,6 +27,7 @@ jobs:
       - name: Kütüphaneleri yükle
         run: |
           pip install numpy
+          pip install yfinance --quiet
           pip install statsmodels --quiet || echo "statsmodels kurulamadı, basit AR(2) kullanılacak"
 
       - name: Analizi çalıştır

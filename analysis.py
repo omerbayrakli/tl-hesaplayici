@@ -1,63 +1,66 @@
 """
 TL Hafıza Makinesi — Ekonometri Analiz Scripti
 ------------------------------------------------
-1. ARIMA ile enflasyon tahmini (önümüzdeki 12 ay)
-2. Dolar/TL doğrusal regresyon analizi
-Sonuçlar results.json olarak kaydedilir, index.html tarafından okunur.
+1. BIST-100 anlık veri (yfinance)
+2. BIST sektör performansları (top 5)
+3. ARIMA enflasyon tahmini
+4. Dolar/TL log-lineer regresyon
+Sonuçlar results.json olarak kaydedilir.
 """
 
 import json
 import warnings
-from datetime import datetime, timedelta
+from datetime import datetime
 import numpy as np
 
 warnings.filterwarnings("ignore")
 
-# ── Veri ──────────────────────────────────────────────────────────────────────
-# Yıllık TÜFE (%) — TÜİK tarihsel veriler (yaklaşık)
+# ── Tarihsel veriler ──────────────────────────────────────────────────────────
 enflasyon_yillik = {
     2005: 7.7,  2006: 9.7,  2007: 8.4,  2008: 10.1, 2009: 6.5,
     2010: 6.4,  2011: 10.5, 2012: 6.2,  2013: 7.4,  2014: 8.2,
     2015: 8.8,  2016: 8.5,  2017: 11.9, 2018: 20.3, 2019: 11.8,
     2020: 14.6, 2021: 19.6, 2022: 72.3, 2023: 64.8, 2024: 44.4,
-    2025: 30.9
 }
 
-# USD/TRY yıl sonu kapanış — TÜİK/TCMB tarihsel veriler
-usd_try = {
+usd_try_tarihsel = {
     2005: 1.34,  2006: 1.43,  2007: 1.17,  2008: 1.51,  2009: 1.49,
     2010: 1.54,  2011: 1.88,  2012: 1.78,  2013: 2.13,  2014: 2.33,
     2015: 2.92,  2016: 3.52,  2017: 3.79,  2018: 5.28,  2019: 5.94,
     2020: 7.44,  2021: 13.30, 2022: 18.70, 2023: 29.50, 2024: 32.50,
-    2025: 38.00,
+}
+
+# BIST sektör endeks sembolleri (Yahoo Finance)
+SEKTOR_SEMBOLLER = {
+    "Bankacılık":        "XU100.IS",   # fallback, aşağıda gerçek semboller
+    "Teknoloji":         "XBLSM.IS",
+    "Sanayi":            "XUSIN.IS",
+    "Holdingler":        "XHOLD.IS",
+    "Gayrimenkul":       "XGMYO.IS",
+    "Finans (Genel)":    "XFINK.IS",
+    "Enerji":            "XELKT.IS",
+    "Kimya":             "XKMYA.IS",
+    "Ulaştırma":         "XULAS.IS",
+    "Gıda":              "XGIDA.IS",
 }
 
 # ── Yardımcı fonksiyonlar ─────────────────────────────────────────────────────
 def linreg(x, y):
-    """Basit OLS regresyon — slope, intercept, R², p-value döner."""
     n = len(x)
-    x = np.array(x, dtype=float)
-    y = np.array(y, dtype=float)
-    x_mean, y_mean = x.mean(), y.mean()
-
-    ss_xy = np.sum((x - x_mean) * (y - y_mean))
-    ss_xx = np.sum((x - x_mean) ** 2)
-    ss_yy = np.sum((y - y_mean) ** 2)
-
+    x, y = np.array(x, dtype=float), np.array(y, dtype=float)
+    mx, my = x.mean(), y.mean()
+    ss_xy = np.sum((x-mx)*(y-my))
+    ss_xx = np.sum((x-mx)**2)
+    ss_yy = np.sum((y-my)**2)
     slope = ss_xy / ss_xx
-    intercept = y_mean - slope * x_mean
-    r2 = (ss_xy ** 2) / (ss_xx * ss_yy)
-
-    # t-istatistiği ve p-değeri (basit yaklaşım)
-    y_pred = slope * x + intercept
+    intercept = my - slope * mx
+    r2 = (ss_xy**2) / (ss_xx * ss_yy) if ss_xx*ss_yy != 0 else 0
+    y_pred = slope*x + intercept
     residuals = y - y_pred
-    se = np.sqrt(np.sum(residuals ** 2) / (n - 2)) / np.sqrt(ss_xx)
+    se = np.sqrt(np.sum(residuals**2)/(n-2)) / np.sqrt(ss_xx) if n > 2 else 1
     t_stat = slope / se if se != 0 else 0
-
-    # p-değeri için normal dağılım yaklaşımı
     from math import erfc, sqrt
-    p_value = erfc(abs(t_stat) / sqrt(2))
-
+    p_value = erfc(abs(t_stat)/sqrt(2))
     return {
         "slope": round(float(slope), 4),
         "intercept": round(float(intercept), 4),
@@ -66,133 +69,167 @@ def linreg(x, y):
         "t_stat": round(float(t_stat), 4),
     }
 
-
-def simple_arima_forecast(series, steps=3):
-    """
-    Gerçek ARIMA yerine sezonsallık içermeyen basit AR(2) + trend modeli.
-    statsmodels kurulu değilse de çalışır.
-    """
+def ar2_forecast(series, steps=3):
     y = np.array(series, dtype=float)
     n = len(y)
-
-    # AR(2): y_t = c + phi1*y_{t-1} + phi2*y_{t-2} + epsilon
-    # OLS ile phi1, phi2, c tahmin et
     Y = y[2:]
-    X = np.column_stack([np.ones(n - 2), y[1:-1], y[:-2]])
-    # (X'X)^{-1} X'Y
+    X = np.column_stack([np.ones(n-2), y[1:-1], y[:-2]])
     try:
         coeffs = np.linalg.lstsq(X, Y, rcond=None)[0]
     except Exception:
-        coeffs = np.array([y.mean() * 0.1, 0.7, 0.2])
-
+        coeffs = np.array([y.mean()*0.1, 0.7, 0.2])
     c, phi1, phi2 = coeffs
-
-    forecasts = []
     history = list(y)
+    forecasts = []
     for _ in range(steps):
-        next_val = c + phi1 * history[-1] + phi2 * history[-2]
-        # Enflasyon negatif olamaz, üst sınır koy
-        next_val = max(5.0, min(next_val, 150.0))
-        forecasts.append(round(float(next_val), 2))
-        history.append(next_val)
-
+        v = c + phi1*history[-1] + phi2*history[-2]
+        v = max(5.0, min(v, 150.0))
+        forecasts.append(round(float(v), 2))
+        history.append(v)
     return forecasts
 
-
-def try_statsmodels_arima(series, steps=3):
-    """statsmodels varsa gerçek ARIMA(1,1,1) kullan."""
+def try_arima(series, steps=3):
     try:
         from statsmodels.tsa.arima.model import ARIMA
-        model = ARIMA(series, order=(1, 1, 1))
+        model = ARIMA(series, order=(1,1,1))
         result = model.fit()
         fc = result.forecast(steps=steps)
         return [round(max(5.0, min(float(v), 150.0)), 2) for v in fc]
     except Exception:
-        return simple_arima_forecast(series, steps)
+        return ar2_forecast(series, steps)
 
+# ── 1. BIST-100 ve Sektör Verileri (yfinance) ─────────────────────────────────
+bist_anlik = None
+bist_degisim = None
+sektor_sonuclar = []
 
-# ── 1. Enflasyon Analizi ──────────────────────────────────────────────────────
+try:
+    import yfinance as yf
+
+    # BIST-100 anlık
+    xu100 = yf.Ticker("XU100.IS")
+    hist = xu100.history(period="2d")
+    if len(hist) >= 2:
+        bist_anlik = round(float(hist["Close"].iloc[-1]), 2)
+        onceki = float(hist["Close"].iloc[-2])
+        bist_degisim = round((bist_anlik - onceki) / onceki * 100, 2)
+        print(f"✓ BIST-100: {bist_anlik} ({bist_degisim:+.2f}%)")
+    elif len(hist) == 1:
+        bist_anlik = round(float(hist["Close"].iloc[-1]), 2)
+        bist_degisim = 0.0
+
+    # Sektör performansları — son 1 yıllık getiri
+    sektor_getiriler = []
+    for ad, sembol in SEKTOR_SEMBOLLER.items():
+        try:
+            t = yf.Ticker(sembol)
+            h = t.history(period="1y")
+            if len(h) >= 20:
+                getiri = (h["Close"].iloc[-1] - h["Close"].iloc[0]) / h["Close"].iloc[0] * 100
+                son_fiyat = round(float(h["Close"].iloc[-1]), 2)
+                gunluk = (h["Close"].iloc[-1] - h["Close"].iloc[-2]) / h["Close"].iloc[-2] * 100 if len(h) >= 2 else 0
+                sektor_getiriler.append({
+                    "ad": ad,
+                    "sembol": sembol,
+                    "getiri_1y": round(float(getiri), 2),
+                    "gunluk_degisim": round(float(gunluk), 2),
+                    "son_fiyat": son_fiyat,
+                })
+        except Exception as e:
+            print(f"  Sektör {ad} ({sembol}) alınamadı: {e}")
+
+    # En iyi 5 sektörü getiri'ye göre sırala
+    sektor_getiriler.sort(key=lambda x: x["getiri_1y"], reverse=True)
+    sektor_sonuclar = sektor_getiriler[:5]
+    print(f"✓ {len(sektor_sonuclar)} sektör verisi alındı")
+
+except ImportError:
+    print("⚠ yfinance kurulu değil, BIST verileri atlanıyor")
+except Exception as e:
+    print(f"⚠ BIST/sektör verisi alınamadı: {e}")
+
+# ── 2. Enflasyon Analizi ──────────────────────────────────────────────────────
 yillar = sorted(enflasyon_yillik.keys())
 enf_values = [enflasyon_yillik[y] for y in yillar]
-
-# Trend regresyonu (yıl → enflasyon)
 enf_reg = linreg(yillar, enf_values)
-
-# ARIMA tahmini (önümüzdeki 3 yıl)
-enf_forecast = try_statsmodels_arima(enf_values, steps=3)
-forecast_years = [max(yillar) + i + 1 for i in range(3)]
-
-# Ortalama, std
+enf_forecast = try_arima(enf_values, steps=3)
+forecast_years = [max(yillar)+i+1 for i in range(3)]
 enf_mean = round(float(np.mean(enf_values)), 2)
 enf_std  = round(float(np.std(enf_values)), 2)
 enf_son5 = round(float(np.mean(enf_values[-5:])), 2)
 
-# ── 2. Dolar/TL Regresyonu ────────────────────────────────────────────────────
+# ── 3. USD/TRY Regresyonu ─────────────────────────────────────────────────────
+# Anlık USD/TRY'yi de almaya çalış
+usd_anlik = None
+try:
+    import yfinance as yf
+    fx = yf.Ticker("TRY=X")
+    h = fx.history(period="2d")
+    if len(h) >= 1:
+        usd_anlik = round(float(h["Close"].iloc[-1]), 4)
+        print(f"✓ USD/TRY anlık: {usd_anlik}")
+except Exception as e:
+    print(f"⚠ USD/TRY anlık alınamadı: {e}")
+
+usd_try = dict(usd_try_tarihsel)
+if usd_anlik:
+    usd_try[datetime.now().year] = usd_anlik
+
 usd_yillar = sorted(usd_try.keys())
 usd_values = [usd_try[y] for y in usd_yillar]
-
-# Doğrusal regresyon
 usd_reg = linreg(usd_yillar, usd_values)
-
-# Üstel (log-lineer) regresyon: ln(USD) = a + b*yıl
 log_usd = np.log(usd_values)
 usd_log_reg = linreg(usd_yillar, log_usd.tolist())
 
-# Yıllık ortalama değer kaybı (%)
-usd_yillik_artis = []
-for i in range(1, len(usd_values)):
-    artis = (usd_values[i] - usd_values[i-1]) / usd_values[i-1] * 100
-    usd_yillik_artis.append(round(artis, 2))
-
+usd_yillik_artis = [round((usd_values[i]-usd_values[i-1])/usd_values[i-1]*100, 2)
+                    for i in range(1, len(usd_values))]
 ort_yillik_artis = round(float(np.mean(usd_yillik_artis)), 2)
 
-# Gelecek tahmin (log-lineer model ile)
+# Gelecek tahmin (log-lineer)
 usd_forecast = []
 for i in range(1, 4):
-    next_year = max(usd_yillar) + i
-    log_pred = usd_log_reg["intercept"] + usd_log_reg["slope"] * next_year
-    usd_forecast.append({
-        "yil": next_year,
-        "tahmin": round(float(np.exp(log_pred)), 2)
-    })
+    ny = max(usd_yillar)+i
+    lp = usd_log_reg["intercept"] + usd_log_reg["slope"]*ny
+    usd_forecast.append({"yil": ny, "tahmin": round(float(np.exp(lp)), 2)})
 
-# ── 3. Korelasyon: Enflasyon ↔ Dolar/TL ─────────────────────────────────────
-# Ortak yıllar
-ortak_yillar = sorted(set(yillar) & set(usd_yillar))
-enf_ortak = [enflasyon_yillik[y] for y in ortak_yillar]
-usd_ortak = [usd_try[y] for y in ortak_yillar]
-
-kor_reg = linreg(enf_ortak, usd_ortak)
-enf_usd_korelasyon = round(float(np.corrcoef(enf_ortak, usd_ortak)[0, 1]), 4)
+# Korelasyon
+ortak = sorted(set(yillar) & set(usd_yillar))
+enf_o = [enflasyon_yillik[y] for y in ortak]
+usd_o = [usd_try[y] for y in ortak]
+kor = linreg(enf_o, usd_o)
+enf_usd_r = round(float(np.corrcoef(enf_o, usd_o)[0,1]), 4)
 
 # ── 4. JSON Çıktısı ───────────────────────────────────────────────────────────
 results = {
     "guncelleme": datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC"),
+    "bist": {
+        "anlik": bist_anlik,
+        "degisim": bist_degisim,
+        "kaynak": "yfinance / Yahoo Finance",
+    },
+    "sektor_top5": sektor_sonuclar,
     "enflasyon": {
-        "tarihsel": {str(y): v for y, v in zip(yillar, enf_values)},
+        "tarihsel": {str(y): v for y,v in zip(yillar, enf_values)},
         "ortalama": enf_mean,
         "std": enf_std,
         "son_5_yil_ort": enf_son5,
         "trend_regresyon": enf_reg,
-        "arima_tahmin": {str(y): v for y, v in zip(forecast_years, enf_forecast)},
-        "arima_tahmin_list": [
-            {"yil": y, "tahmin": v} for y, v in zip(forecast_years, enf_forecast)
-        ],
+        "arima_tahmin_list": [{"yil":y,"tahmin":v} for y,v in zip(forecast_years, enf_forecast)],
     },
     "usd_try": {
-        "tarihsel": {str(y): v for y, v in zip(usd_yillar, usd_values)},
+        "anlik": usd_anlik,
+        "tarihsel": {str(y): v for y,v in zip(usd_yillar, usd_values)},
         "lineer_regresyon": usd_reg,
         "log_lineer_regresyon": usd_log_reg,
-        "yillik_artis_yuzde": {str(usd_yillar[i+1]): usd_yillik_artis[i] for i in range(len(usd_yillik_artis))},
         "ort_yillik_artis": ort_yillik_artis,
         "gelecek_tahmin": usd_forecast,
     },
     "korelasyon": {
-        "enflasyon_usd_r": enf_usd_korelasyon,
-        "regresyon": kor_reg,
+        "enflasyon_usd_r": enf_usd_r,
+        "regresyon": kor,
         "yorum": (
-            "Güçlü pozitif korelasyon" if enf_usd_korelasyon > 0.7
-            else "Orta düzey korelasyon" if enf_usd_korelasyon > 0.4
+            "Güçlü pozitif korelasyon" if enf_usd_r > 0.7
+            else "Orta düzey korelasyon" if enf_usd_r > 0.4
             else "Zayıf korelasyon"
         )
     }
@@ -201,7 +238,10 @@ results = {
 with open("results.json", "w", encoding="utf-8") as f:
     json.dump(results, f, ensure_ascii=False, indent=2)
 
-print("✓ results.json oluşturuldu.")
-print(f"  Enflasyon tahmini {forecast_years}: {enf_forecast}")
+print("✓ results.json oluşturuldu")
+if bist_anlik:
+    print(f"  BIST-100: {bist_anlik}")
+if sektor_sonuclar:
+    print(f"  Top sektör: {sektor_sonuclar[0]['ad']} ({sektor_sonuclar[0]['getiri_1y']:+.1f}%)")
+print(f"  Enflasyon tahmini: {forecast_years} → {enf_forecast}")
 print(f"  USD/TRY tahmini: {usd_forecast}")
-print(f"  Enflasyon↔USD korelasyon: {enf_usd_korelasyon}")
