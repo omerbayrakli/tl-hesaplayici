@@ -1,5 +1,5 @@
 {
-  "guncelleme": "2026-04-18 08:24 UTC",
+  "guncelleme": "2026-04-18 08:49 UTC",
   "bist": {
     "anlik": 14587.9,
     "degisim": 2.72,
@@ -8,10 +8,10 @@
   "sektor_top5": [
     {
       "ad": "Bankacılık",
-      "sembol": "XU100.IS",
-      "getiri_1y": 55.26,
-      "gunluk_degisim": 2.72,
-      "son_fiyat": 14587.9
+      "sembol": "XBANK.IS",
+      "getiri_1y": 55.91,
+      "gunluk_degisim": 5.63,
+      "son_fiyat": 18564.9
     },
     {
       "ad": "Sanayi",
