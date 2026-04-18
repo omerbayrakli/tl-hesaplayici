@@ -102,7 +102,26 @@ h1 em { font-style:italic; color:var(--accent); }
 .bfill.silver { background:linear-gradient(90deg,#cfd8dc,#78909C); }
 .bfill.bist   { background:linear-gradient(90deg,#ce93d8,#7B1FA2); }
 
-/* SEKTÖR LİSTESİ */
+/* BIST + SEKTÖR YAN YANA */
+.bist-sektor-row {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  align-items: start;
+}
+.sektor-ic-kart {
+  background: var(--card);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 0.75rem 1rem 1rem;
+  height: 100%;
+}
+.bist-sektor-row .ccard { margin-bottom: 0; }
+
+@media(max-width:600px){
+  .bist-sektor-row { grid-template-columns: 1fr; }
+}
 .sektor-row { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:0.5px solid var(--border); }
 .sektor-row:last-child { border-bottom:none; }
 .sektor-sol { display:flex; align-items:center; gap:10px; }
@@ -310,24 +329,27 @@ h1 em { font-style:italic; color:var(--accent); }
         <div class="icon">₿</div><div class="clabel">BTC'de tutsaydın</div>
         <div class="cvalue btcup" id="btcDeger">—</div><div class="ckat" id="btcKat">—</div>
       </div>
-      <div class="ccard" id="bistWidget">
+    </div>
+
+    <!-- BIST + SEKTÖR YAN YANA ROW -->
+    <div class="bist-sektor-row">
+      <div class="ccard" id="bistWidget" style="margin-bottom:0;">
         <div class="share-row"><button class="widget-share-btn" onclick="shareWidget('bistWidget')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg><span class="btn-txt">X</span></button></div>
         <div class="icon">📈</div><div class="clabel">BIST-100'de tutsaydın</div>
         <div class="cvalue bistup" id="bistDeger">—</div><div class="ckat" id="bistKat">—</div>
       </div>
-    </div>
 
-    <!-- BIST SEKTÖR KARTI -->
-    <div class="bar-card" id="sektorWidget" style="display:none;">
-      <div class="card-share-row">
-        <button class="widget-share-btn" onclick="shareWidget('sektorWidget')">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-          <span class="btn-txt">X'te paylaş</span>
-        </button>
+      <div class="sektor-ic-kart" id="sektorWidget" style="display:none;">
+        <div class="card-share-row">
+          <button class="widget-share-btn" onclick="shareWidget('sektorWidget')">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            <span class="btn-txt">X'te paylaş</span>
+          </button>
+        </div>
+        <div class="bar-title">En Çok Kazandıran Sektörler (1Y)</div>
+        <div id="sektorListesi"></div>
+        <div style="font-size:10px;color:var(--muted);margin-top:0.75rem;">Kaynak: Yahoo Finance · Günlük güncellenir</div>
       </div>
-      <div class="bar-title">En Çok Kazandıran BIST Sektörleri (Son 1 Yıl)</div>
-      <div id="sektorListesi"></div>
-      <div style="font-size:11px;color:var(--muted);margin-top:0.75rem;">* Yıllık getiri. Kaynak: Yahoo Finance · GitHub Actions ile güncellenir.</div>
     </div>
 
     <div class="bar-card" id="barWidget">
