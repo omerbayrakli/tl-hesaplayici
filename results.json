@@ -1,5 +1,26 @@
 {
-  "guncelleme": "2026-04-18 07:02 UTC",
+  "guncelleme": "2026-04-18 08:23 UTC",
+  "bist": {
+    "anlik": 14587.9,
+    "degisim": 2.72,
+    "kaynak": "yfinance / Yahoo Finance"
+  },
+  "sektor_top5": [
+    {
+      "ad": "Bankacılık",
+      "sembol": "XU100.IS",
+      "getiri_1y": 55.26,
+      "gunluk_degisim": 2.72,
+      "son_fiyat": 14587.9
+    },
+    {
+      "ad": "Sanayi",
+      "sembol": "XUSIN.IS",
+      "getiri_1y": 43.33,
+      "gunluk_degisim": 1.31,
+      "son_fiyat": 17808.7
+    }
+  ],
   "enflasyon": {
     "tarihsel": {
       "2005": 7.7,
@@ -21,40 +42,35 @@
       "2021": 19.6,
       "2022": 72.3,
       "2023": 64.8,
-      "2024": 44.4,
-      "2025": 30.9
+      "2024": 44.4
     },
-    "ortalama": 18.52,
-    "std": 18.6,
-    "son_5_yil_ort": 46.4,
+    "ortalama": 17.9,
+    "std": 18.85,
+    "son_5_yil_ort": 43.14,
     "trend_regresyon": {
-      "slope": 2.0874,
-      "intercept": -4187.5924,
-      "r2": 0.4617,
+      "slope": 2.2216,
+      "intercept": -4457.4658,
+      "r2": 0.4619,
       "p_value": 0.0001,
-      "t_stat": 4.037
-    },
-    "arima_tahmin": {
-      "2026": 30.01,
-      "2027": 30.2,
-      "2028": 30.16
+      "t_stat": 3.9307
     },
     "arima_tahmin_list": [
       {
+        "yil": 2025,
+        "tahmin": 43.07
+      },
+      {
         "yil": 2026,
-        "tahmin": 30.01
+        "tahmin": 42.26
       },
       {
         "yil": 2027,
-        "tahmin": 30.2
-      },
-      {
-        "yil": 2028,
-        "tahmin": 30.16
+        "tahmin": 41.77
       }
     ]
   },
   "usd_try": {
+    "anlik": 44.8473,
     "tarihsel": {
       "2005": 1.34,
       "2006": 1.43,
@@ -76,68 +92,46 @@
       "2022": 18.7,
       "2023": 29.5,
       "2024": 32.5,
-      "2025": 38.0
+      "2026": 44.8473
     },
     "lineer_regresyon": {
-      "slope": 1.4608,
-      "intercept": -2935.0444,
-      "r2": 0.637,
+      "slope": 1.5543,
+      "intercept": -3123.147,
+      "r2": 0.6309,
       "p_value": 0.0,
-      "t_stat": 5.7741
+      "t_stat": 5.6983
     },
     "log_lineer_regresyon": {
-      "slope": 0.1759,
-      "intercept": -352.985,
-      "r2": 0.8994,
+      "slope": 0.1763,
+      "intercept": -353.8481,
+      "r2": 0.9025,
       "p_value": 0.0,
-      "t_stat": 13.0304
+      "t_stat": 13.2617
     },
-    "yillik_artis_yuzde": {
-      "2006": 6.72,
-      "2007": -18.18,
-      "2008": 29.06,
-      "2009": -1.32,
-      "2010": 3.36,
-      "2011": 22.08,
-      "2012": -5.32,
-      "2013": 19.66,
-      "2014": 9.39,
-      "2015": 25.32,
-      "2016": 20.55,
-      "2017": 7.67,
-      "2018": 39.31,
-      "2019": 12.5,
-      "2020": 25.25,
-      "2021": 78.76,
-      "2022": 40.6,
-      "2023": 57.75,
-      "2024": 10.17,
-      "2025": 16.92
-    },
-    "ort_yillik_artis": 20.01,
+    "ort_yillik_artis": 21.07,
     "gelecek_tahmin": [
       {
-        "yil": 2026,
-        "tahmin": 29.62
-      },
-      {
         "yil": 2027,
-        "tahmin": 35.31
+        "tahmin": 33.52
       },
       {
         "yil": 2028,
-        "tahmin": 42.11
+        "tahmin": 39.98
+      },
+      {
+        "yil": 2029,
+        "tahmin": 47.68
       }
     ]
   },
   "korelasyon": {
-    "enflasyon_usd_r": 0.7795,
+    "enflasyon_usd_r": 0.8701,
     "regresyon": {
-      "slope": 0.4644,
-      "intercept": -0.151,
-      "r2": 0.6076,
+      "slope": 0.4209,
+      "intercept": -0.5617,
+      "r2": 0.7571,
       "p_value": 0.0,
-      "t_stat": 5.4241
+      "t_stat": 7.4897
     },
     "yorum": "Güçlü pozitif korelasyon"
   }
