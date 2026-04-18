@@ -453,31 +453,32 @@ h1 em { font-style:italic; color:var(--accent); }
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
 const DATA = {
-  2005:{usd:1.34,altin:24,gumus:0.42,konut:830,bist:24000,enfKayip:28.0,btc:null},
-  2006:{usd:1.43,altin:28,gumus:0.52,konut:980,bist:39000,enfKayip:25.0,btc:null},
-  2007:{usd:1.17,altin:33,gumus:0.60,konut:1170,bist:55000,enfKayip:22.5,btc:null},
-  2008:{usd:1.51,altin:40,gumus:0.72,konut:1350,bist:26500,enfKayip:20.0,btc:null},
-  2009:{usd:1.49,altin:48,gumus:0.78,konut:1450,bist:52000,enfKayip:18.0,btc:null},
-  2010:{usd:1.54,altin:56,gumus:1.05,konut:1570,bist:66000,enfKayip:16.0,btc:0.07},
-  2011:{usd:1.88,altin:82,gumus:1.75,konut:1750,bist:51500,enfKayip:14.0,btc:4},
-  2012:{usd:1.78,altin:96,gumus:1.72,konut:1920,bist:78000,enfKayip:12.5,btc:13},
-  2013:{usd:2.13,altin:87,gumus:1.40,konut:2120,bist:67800,enfKayip:11.0,btc:800},
-  2014:{usd:2.33,altin:88,gumus:1.35,konut:2310,bist:83400,enfKayip:9.8,btc:320},
-  2015:{usd:2.92,altin:100,gumus:1.38,konut:2520,bist:71600,enfKayip:8.5,btc:430},
-  2016:{usd:3.52,altin:120,gumus:1.95,konut:2750,bist:78200,enfKayip:7.5,btc:960},
-  2017:{usd:3.79,altin:148,gumus:2.05,konut:3020,bist:115300,enfKayip:6.5,btc:13000},
-  2018:{usd:5.28,altin:228,gumus:2.80,konut:3450,bist:91200,enfKayip:5.2,btc:3800},
-  2019:{usd:5.94,altin:290,gumus:3.35,konut:3950,bist:114400,enfKayip:4.3,btc:7200},
-  2020:{usd:7.44,altin:490,gumus:6.35,konut:5050,bist:148000,enfKayip:3.5,btc:29000},
-  2021:{usd:13.3,altin:520,gumus:7.10,konut:7600,bist:180000,enfKayip:2.8,btc:46000},
-  2022:{usd:18.7,altin:1010,gumus:12.0,konut:14000,bist:212000,enfKayip:2.1,btc:16500},
-  2023:{usd:29.5,altin:1900,gumus:22.5,konut:23000,bist:472000,enfKayip:1.55,btc:43000},
-  2024:{usd:32.5,altin:2850,gumus:30.5,konut:32000,bist:980000,enfKayip:1.22,btc:67000},
-  2025:{usd:38.0,altin:3900,gumus:41.0,konut:45000,bist:1020000,enfKayip:1.18,btc:85000},
-  2026:{usd:42.0,altin:4550,gumus:45.0,konut:58000,bist:1150000,enfKayip:1.0,btc:95000},
+  // bist: Yahoo Finance XU100.IS yeni baz değerleri
+  2005:{usd:1.34,altin:24,gumus:0.42,konut:830,bist:355,enfKayip:28.0,btc:null},
+  2006:{usd:1.43,altin:28,gumus:0.52,konut:980,bist:578,enfKayip:25.0,btc:null},
+  2007:{usd:1.17,altin:33,gumus:0.60,konut:1170,bist:815,enfKayip:22.5,btc:null},
+  2008:{usd:1.51,altin:40,gumus:0.72,konut:1350,bist:393,enfKayip:20.0,btc:null},
+  2009:{usd:1.49,altin:48,gumus:0.78,konut:1450,bist:770,enfKayip:18.0,btc:null},
+  2010:{usd:1.54,altin:56,gumus:1.05,konut:1570,bist:977,enfKayip:16.0,btc:0.07},
+  2011:{usd:1.88,altin:82,gumus:1.75,konut:1750,bist:763,enfKayip:14.0,btc:4},
+  2012:{usd:1.78,altin:96,gumus:1.72,konut:1920,bist:1155,enfKayip:12.5,btc:13},
+  2013:{usd:2.13,altin:87,gumus:1.40,konut:2120,bist:1004,enfKayip:11.0,btc:800},
+  2014:{usd:2.33,altin:88,gumus:1.35,konut:2310,bist:1235,enfKayip:9.8,btc:320},
+  2015:{usd:2.92,altin:100,gumus:1.38,konut:2520,bist:1060,enfKayip:8.5,btc:430},
+  2016:{usd:3.52,altin:120,gumus:1.95,konut:2750,bist:1158,enfKayip:7.5,btc:960},
+  2017:{usd:3.79,altin:148,gumus:2.05,konut:3020,bist:1708,enfKayip:6.5,btc:13000},
+  2018:{usd:5.28,altin:228,gumus:2.80,konut:3450,bist:1351,enfKayip:5.2,btc:3800},
+  2019:{usd:5.94,altin:290,gumus:3.35,konut:3950,bist:1695,enfKayip:4.3,btc:7200},
+  2020:{usd:7.44,altin:490,gumus:6.35,konut:5050,bist:2192,enfKayip:3.5,btc:29000},
+  2021:{usd:13.3,altin:520,gumus:7.10,konut:7600,bist:2667,enfKayip:2.8,btc:46000},
+  2022:{usd:18.7,altin:1010,gumus:12.0,konut:14000,bist:3140,enfKayip:2.1,btc:16500},
+  2023:{usd:29.5,altin:1900,gumus:22.5,konut:23000,bist:6993,enfKayip:1.55,btc:43000},
+  2024:{usd:32.5,altin:2850,gumus:30.5,konut:32000,bist:9600,enfKayip:1.22,btc:67000},
+  2025:{usd:38.0,altin:3900,gumus:41.0,konut:45000,bist:12800,enfKayip:1.18,btc:85000},
+  2026:{usd:44.85,altin:4550,gumus:45.0,konut:58000,bist:14588,enfKayip:1.0,btc:95000},
 };
-// BIST-100 eski baz endeks noktaları kullanılmaktadır
-let BUGUN={usd:42.0,altin:4550,gumus:45.0,btc:95000,konut:58000,bist:1150000};
+// BUGUN: results.json'dan canlı BIST güncellenir
+let BUGUN={usd:44.85,altin:4550,gumus:45.0,btc:95000,konut:58000,bist:14588};
 const STATIC_BUGUN={...BUGUN};
 const SITE_URL='https://omerbayrakli.github.io/tl-hesaplayici/';
 
@@ -689,11 +690,18 @@ async function yukleTickerEkstra() {
   try {
     const r = await fetch('results.json?v='+Date.now(),{cache:'no-store'}).then(r=>r.json()).catch(()=>null);
     if (r?.bist?.anlik) {
-      tickerSet(['t-bist','t-bist2'], r.bist.anlik);
+      const bistAnlik = r.bist.anlik;
+      tickerSet(['t-bist','t-bist2'], bistAnlik.toLocaleString('tr-TR',{maximumFractionDigits:0}));
       tickerDeg(['t-bist-d','t-bist-d2'], r.bist.degisim);
-      // Ana DATA objesini de güncelle
-      Object.keys(DATA).forEach(y => { if(parseInt(y)>=2026) DATA[y].bist = r.bist.anlik; });
-      BUGUN.bist = r.bist.anlik;
+      // BUGUN ve 2026 DATA'sını güncelle
+      BUGUN.bist = bistAnlik;
+      DATA[2026].bist = bistAnlik;
+      // USD/TRY anlık da varsa güncelle
+      if (r?.usd_try?.anlik) {
+        BUGUN.usd = r.usd_try.anlik;
+        DATA[2026].usd = r.usd_try.anlik;
+        tickerSet(['t-usd','t-usd2'], r.usd_try.anlik);
+      }
     }
     // Sektörler
     if (r?.sektor_top5?.length) {
