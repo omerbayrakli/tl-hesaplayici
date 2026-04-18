@@ -105,19 +105,24 @@ h1 em { font-style:italic; color:var(--accent); }
 /* BIST + SEKTÖR YAN YANA */
 .bist-sektor-row {
   display: grid;
-  grid-template-columns: 1fr 2fr;
+  grid-template-columns: 1fr 1fr;
   gap: 1rem;
   margin-bottom: 1.5rem;
-  align-items: start;
+  align-items: stretch;
 }
 .sektor-ic-kart {
   background: var(--card);
   border-radius: 16px;
   box-shadow: var(--shadow);
   padding: 0.75rem 1rem 1rem;
-  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
-.bist-sektor-row .ccard { margin-bottom: 0; }
+.bist-sektor-row .ccard {
+  margin-bottom: 0;
+  justify-content: center;
+}
+#sektorListesi { flex: 1; }
 
 @media(max-width:600px){
   .bist-sektor-row { grid-template-columns: 1fr; }
