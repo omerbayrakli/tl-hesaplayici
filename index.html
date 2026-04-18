@@ -693,15 +693,28 @@ async function yukleTickerEkstra() {
       const bistAnlik = r.bist.anlik;
       tickerSet(['t-bist','t-bist2'], bistAnlik.toLocaleString('tr-TR',{maximumFractionDigits:0}));
       tickerDeg(['t-bist-d','t-bist-d2'], r.bist.degisim);
-      // BUGUN ve 2026 DATA'sını güncelle
       BUGUN.bist = bistAnlik;
       DATA[2026].bist = bistAnlik;
-      // USD/TRY anlık da varsa güncelle
       if (r?.usd_try?.anlik) {
         BUGUN.usd = r.usd_try.anlik;
         DATA[2026].usd = r.usd_try.anlik;
         tickerSet(['t-usd','t-usd2'], r.usd_try.anlik);
       }
+    }
+
+    // Tarihsel altın/gümüş/USD verilerini DATA'ya yaz
+    if (r?.fiyatlar) {
+      const f = r.fiyatlar;
+      Object.keys(DATA).forEach(y => {
+        const yi = parseInt(y);
+        if (f.usd_tarihsel?.[y])   DATA[yi].usd   = f.usd_tarihsel[y];
+        if (f.altin_tarihsel?.[y]) DATA[yi].altin = f.altin_tarihsel[y];
+        if (f.gumus_tarihsel?.[y]) DATA[yi].gumus = f.gumus_tarihsel[y];
+      });
+      if (f.usd_anlik)   { BUGUN.usd   = f.usd_anlik;   tickerSet(['t-usd','t-usd2'], f.usd_anlik); }
+      if (f.altin_anlik) { BUGUN.altin  = f.altin_anlik; tickerSet(['t-gold','t-gold2'], Math.round(f.altin_anlik)); }
+      if (f.gumus_anlik) { BUGUN.gumus  = f.gumus_anlik; tickerSet(['t-silver','t-silver2'], f.gumus_anlik.toFixed(2)); }
+      console.log('✓ Tarihsel fiyat verileri results.json\'dan güncellendi');
     }
     // Sektörler
     if (r?.sektor_top5?.length) {
