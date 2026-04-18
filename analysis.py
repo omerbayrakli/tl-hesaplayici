@@ -30,18 +30,18 @@ usd_try_tarihsel = {
     2020: 7.44,  2021: 13.30, 2022: 18.70, 2023: 29.50, 2024: 32.50,
 }
 
-# BIST sektör endeks sembolleri (Yahoo Finance)
+# BIST sektör endeks sembolleri (Yahoo Finance - test edilmiş)
 SEKTOR_SEMBOLLER = {
-    "Bankacılık":        "XU100.IS",   # fallback, aşağıda gerçek semboller
-    "Teknoloji":         "XBLSM.IS",
-    "Sanayi":            "XUSIN.IS",
-    "Holdingler":        "XHOLD.IS",
-    "Gayrimenkul":       "XGMYO.IS",
-    "Finans (Genel)":    "XFINK.IS",
-    "Enerji":            "XELKT.IS",
-    "Kimya":             "XKMYA.IS",
-    "Ulaştırma":         "XULAS.IS",
-    "Gıda":              "XGIDA.IS",
+    "Bankacılık":     "XBANK.IS",
+    "Sanayi":         "XUSIN.IS",
+    "Holdingler":     "XHOLD.IS",
+    "Gayrimenkul":    "XGMYO.IS",
+    "Enerji":         "XELKT.IS",
+    "Teknoloji":      "XBLSM.IS",
+    "Kimya/Petrol":   "XKMYA.IS",
+    "Gıda/İçecek":    "XGIDA.IS",
+    "Ulaştırma":      "XULAS.IS",
+    "Sigorta":        "XSGRT.IS",
 }
 
 # ── Yardımcı fonksiyonlar ─────────────────────────────────────────────────────
@@ -106,14 +106,14 @@ sektor_sonuclar = []
 try:
     import yfinance as yf
 
-    # BIST-100 anlık
+    # BIST-100 anlık — Yahoo Finance eski baz endeks noktası döndürür
     xu100 = yf.Ticker("XU100.IS")
     hist = xu100.history(period="2d")
     if len(hist) >= 2:
         bist_anlik = round(float(hist["Close"].iloc[-1]), 2)
         onceki = float(hist["Close"].iloc[-2])
         bist_degisim = round((bist_anlik - onceki) / onceki * 100, 2)
-        print(f"✓ BIST-100: {bist_anlik} ({bist_degisim:+.2f}%)")
+        print(f"✓ BIST-100: {bist_anlik:,.0f} ({bist_degisim:+.2f}%)")
     elif len(hist) == 1:
         bist_anlik = round(float(hist["Close"].iloc[-1]), 2)
         bist_degisim = 0.0

@@ -472,12 +472,12 @@ const DATA = {
   2021:{usd:13.3,altin:520,gumus:7.10,konut:7600,bist:180000,enfKayip:2.8,btc:46000},
   2022:{usd:18.7,altin:1010,gumus:12.0,konut:14000,bist:212000,enfKayip:2.1,btc:16500},
   2023:{usd:29.5,altin:1900,gumus:22.5,konut:23000,bist:472000,enfKayip:1.55,btc:43000},
-  2024:{usd:32.5,altin:2850,gumus:30.5,konut:32000,bist:9800,enfKayip:1.22,btc:67000},
-  2025:{usd:38.0,altin:3900,gumus:41.0,konut:45000,bist:10200,enfKayip:1.18,btc:85000},
-  2026:{usd:42.0,altin:4550,gumus:45.0,konut:58000,bist:11500,enfKayip:1.0,btc:95000},
+  2024:{usd:32.5,altin:2850,gumus:30.5,konut:32000,bist:980000,enfKayip:1.22,btc:67000},
+  2025:{usd:38.0,altin:3900,gumus:41.0,konut:45000,bist:1020000,enfKayip:1.18,btc:85000},
+  2026:{usd:42.0,altin:4550,gumus:45.0,konut:58000,bist:1150000,enfKayip:1.0,btc:95000},
 };
-// Not: 2024+ BIST-100 endeks noktası olarak alınmıştır (yeniden bazlı)
-let BUGUN={usd:42.0,altin:4550,gumus:45.0,btc:95000,konut:58000,bist:11500};
+// BIST-100 eski baz endeks noktaları kullanılmaktadır
+let BUGUN={usd:42.0,altin:4550,gumus:45.0,btc:95000,konut:58000,bist:1150000};
 const STATIC_BUGUN={...BUGUN};
 const SITE_URL='https://omerbayrakli.github.io/tl-hesaplayici/';
 
@@ -636,14 +636,23 @@ function paylasTweet(){
 }
 
 document.getElementById('miktar').addEventListener('keydown',e=>{if(e.key==='Enter')hesapla();});
-// Noktalı format: kullanıcı "10000" yazınca "10.000" göster
+// Yazarken anlık noktalı format (10000 → 10.000)
+document.getElementById('miktar').addEventListener('input', e=>{
+  const el=e.target, cur=el.selectionStart, eski=el.value;
+  const sadece=eski.replace(/[^0-9]/g,'');
+  if(!sadece){el.value='';return;}
+  const formatted=parseInt(sadece,10).toLocaleString('tr-TR');
+  el.value=formatted;
+  const fark=formatted.length-eski.length;
+  try{el.setSelectionRange(cur+fark,cur+fark);}catch(e){}
+});
 document.getElementById('miktar').addEventListener('blur',e=>{
   const val=parseMiktar(e.target.value);
   if(val>0) e.target.value=val.toLocaleString('tr-TR');
 });
 document.getElementById('miktar').addEventListener('focus',e=>{
   const val=parseMiktar(e.target.value);
-  if(val>0) e.target.value=val;
+  if(val>0) e.target.value=val.toLocaleString('tr-TR');
 });
 yukleCanli();
 
