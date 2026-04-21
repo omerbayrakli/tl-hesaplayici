@@ -141,7 +141,17 @@ h1 em { font-style:italic; color:var(--accent); }
 .sektor-gunluk.pos { color:var(--accent2); }
 .sektor-gunluk.neg { color:var(--accent); }
 
-/* KONUT ŞEHİR KARTLARI */
+/* ZAMAN ÇİZELGESİ */
+.zaman-kart { background:var(--card); border-radius:20px; box-shadow:var(--shadow); padding:1.75rem; margin-bottom:1.5rem; }
+.zaman-baslik-row { display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; flex-wrap:wrap; margin-bottom:1rem; }
+.zaman-legend { display:flex; flex-wrap:wrap; gap:8px; }
+.zaman-legend-item { display:inline-flex; align-items:center; gap:5px; font-size:11px; color:var(--muted); cursor:pointer; padding:3px 8px; border-radius:20px; border:0.5px solid var(--border); transition:all 0.15s; user-select:none; }
+.zaman-legend-item.aktif { color:var(--text); border-color:var(--color-border-secondary); background:var(--bg); }
+.zaman-legend-item .dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.zaman-filtre { display:flex; gap:6px; margin-bottom:1.25rem; flex-wrap:wrap; }
+.zaman-filtre-btn { font-size:11px; font-weight:500; padding:4px 12px; border-radius:20px; border:0.5px solid var(--border); background:transparent; color:var(--muted); cursor:pointer; transition:all 0.15s; font-family:'DM Sans',sans-serif; }
+.zaman-filtre-btn.aktif { background:var(--text); color:var(--bg); border-color:var(--text); }
+@media(max-width:600px){ .zaman-baslik-row { flex-direction:column; } }
 .sehir-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:1.5rem; }
 .sehir-kart { background:var(--card); border-radius:16px; box-shadow:var(--shadow); padding:1rem; display:flex; flex-direction:column; gap:4px; }
 .sehir-kart .sehir-baslik { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
@@ -436,6 +446,24 @@ h1 em { font-style:italic; color:var(--accent); }
     <div class="yorum-card"><p class="yorum-text" id="yorum"></p></div>
     <div class="yorum-card"><p class="yorum-text" id="gercekHayat"></p></div>
 
+    <!-- ZAMAN ÇİZELGESİ -->
+    <div class="zaman-kart" id="zamanKart" style="display:none;">
+      <div class="zaman-baslik-row">
+        <div>
+          <div class="bar-title">Paranın Zaman Yolculuğu</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:3px;" id="zamanAltBaslik">—</div>
+        </div>
+        <div class="zaman-legend" id="zamanLegend"></div>
+      </div>
+      <div class="zaman-filtre" id="zamanFiltre"></div>
+      <div style="position:relative;width:100%;height:320px;">
+        <canvas id="zamanChart" role="img" aria-label="Yatırım araçlarının zaman içindeki değer grafiği"></canvas>
+      </div>
+      <div style="font-size:10px;color:var(--muted);margin-top:0.75rem;">
+        Başlangıç değeri 100 olarak normalize edilmiştir. Konut verileri şehir geneli ortalamasıdır.
+      </div>
+    </div>
+
     <button class="share-btn" onclick="paylasTweet()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
       Tüm Sonuçları Tweet At
@@ -709,6 +737,203 @@ function hesapla(){
   document.getElementById('gercekHayat').innerHTML=p.length?`Bu erimeyle yaklaşık <strong>${fmt(kayipTL)}</strong> kaybettin. Bu parayla bugün ${p.join(', ')} alabilirdin.`:`Bu erimeyle yaklaşık <strong>${fmt(kayipTL)}</strong> kaybettin.`;
   document.getElementById('results').classList.add('show');
   setTimeout(()=>document.getElementById('results').scrollIntoView({behavior:'smooth',block:'start'}),50);
+
+  // Zaman çizelgesi verisini hazırla, scroll ile tetiklenecek
+  hazirlaZamanVerisi(miktar, yil, d, dolarBugün, altinBugün, gumusBugün, btcBugün, ist, ank, izm, bistBugün);
+}
+
+// ── ZAMAN ÇİZELGESİ ──────────────────────────────────────────────────────────
+let zamanChartInst = null;
+let zamanScrollObserver = null;
+let zamanVeri = null;
+let zamanAktifSetler = new Set(['TL','Dolar','Altın','BIST-100','İst. Konut']);
+
+const ZAMAN_RENKLER = {
+  'TL':          { border:'#C84B31', bg:'rgba(200,75,49,0.08)',  dash:[] },
+  'Dolar':       { border:'#1565C0', bg:'rgba(21,101,192,0.08)', dash:[] },
+  'Altın':       { border:'#F9A825', bg:'rgba(249,168,37,0.08)', dash:[] },
+  'Gümüş':       { border:'#78909C', bg:'rgba(120,144,156,0.06)',dash:[4,3] },
+  'BIST-100':    { border:'#7B1FA2', bg:'rgba(123,31,162,0.07)', dash:[] },
+  'BTC':         { border:'#2D6A4F', bg:'rgba(45,106,79,0.07)',  dash:[4,3] },
+  'İst. Konut':  { border:'#E65100', bg:'rgba(230,81,0,0.07)',   dash:[] },
+  'Ank. Konut':  { border:'#00695C', bg:'rgba(0,105,92,0.07)',   dash:[4,3] },
+  'İzm. Konut':  { border:'#0277BD', bg:'rgba(2,119,189,0.07)',  dash:[4,3] },
+};
+
+function hazirlaZamanVerisi(miktar, yil, d, dolarBugün, altinBugün, gumusBugün, btcBugün, ist, ank, izm, bistBugün) {
+  const bugunYil = 2026;
+  const yillar = [];
+  for (let y = yil; y <= bugunYil; y++) yillar.push(y);
+
+  // Her yıl için normalize değer (başlangıç = 100)
+  function normalize(getiriFn) {
+    return yillar.map(y => {
+      const v = getiriFn(y);
+      return v != null ? Math.round(v * 10) / 10 : null;
+    });
+  }
+
+  const seriler = {
+    'TL': normalize(y => {
+      const d2 = DATA[y]; if (!d2) return null;
+      return 100 / d2.enfKayip / (100 / d.enfKayip) * 100;
+    }),
+    'Dolar': normalize(y => {
+      const d2 = DATA[y]; if (!d2) return null;
+      const kur = d2.usd || d.usd;
+      return (kur / d.usd) * 100;
+    }),
+    'Altın': normalize(y => {
+      const d2 = DATA[y]; if (!d2) return null;
+      return (d2.altin / d.altin) * 100;
+    }),
+    'Gümüş': normalize(y => {
+      const d2 = DATA[y]; if (!d2) return null;
+      return (d2.gumus / d.gumus) * 100;
+    }),
+    'BIST-100': normalize(y => {
+      const d2 = DATA[y]; if (!d2) return null;
+      return (d2.bist / d.bist) * 100;
+    }),
+    'BTC': normalize(y => {
+      const d2 = DATA[y];
+      if (!d2 || !d.btc || !d2.btc) return null;
+      return ((d2.btc * d2.usd) / (d.btc * d.usd)) * 100;
+    }),
+    'İst. Konut': normalize(y => {
+      const yStr = String(y);
+      if (!SEHIR.ist.genel[yStr] || !SEHIR.ist.genel[String(yil)]) return null;
+      return (SEHIR.ist.genel[yStr] / SEHIR.ist.genel[String(yil)]) * 100;
+    }),
+    'Ank. Konut': normalize(y => {
+      const yStr = String(y);
+      if (!SEHIR.ank.genel[yStr] || !SEHIR.ank.genel[String(yil)]) return null;
+      return (SEHIR.ank.genel[yStr] / SEHIR.ank.genel[String(yil)]) * 100;
+    }),
+    'İzm. Konut': normalize(y => {
+      const yStr = String(y);
+      if (!SEHIR.izm.genel[yStr] || !SEHIR.izm.genel[String(yil)]) return null;
+      return (SEHIR.izm.genel[yStr] / SEHIR.izm.genel[String(yil)]) * 100;
+    }),
+  };
+
+  zamanVeri = { yillar, seriler, yil, miktar };
+  document.getElementById('zamanAltBaslik').textContent =
+    `${yil}–${bugunYil} · Başlangıç = 100 (${miktar.toLocaleString('tr-TR')} TL)`;
+  document.getElementById('zamanKart').style.display = 'block';
+
+  // Legend ve filtre butonlarını oluştur
+  olusturLegendFiltre();
+
+  // Scroll observer kur
+  if (zamanScrollObserver) zamanScrollObserver.disconnect();
+  zamanScrollObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        cizZamanGrafik();
+        zamanScrollObserver.disconnect();
+      }
+    });
+  }, { threshold: 0.25 });
+  zamanScrollObserver.observe(document.getElementById('zamanKart'));
+}
+
+function olusturLegendFiltre() {
+  const legend = document.getElementById('zamanLegend');
+  const filtre = document.getElementById('zamanFiltre');
+  legend.innerHTML = '';
+  filtre.innerHTML = '';
+
+  Object.entries(ZAMAN_RENKLER).forEach(([ad, renk]) => {
+    // Legend item
+    const li = document.createElement('span');
+    li.className = 'zaman-legend-item' + (zamanAktifSetler.has(ad) ? ' aktif' : '');
+    li.innerHTML = `<span class="dot" style="background:${renk.border}"></span>${ad}`;
+    li.onclick = () => {
+      if (zamanAktifSetler.has(ad)) { if (zamanAktifSetler.size > 1) zamanAktifSetler.delete(ad); }
+      else zamanAktifSetler.add(ad);
+      olusturLegendFiltre();
+      cizZamanGrafik();
+    };
+    legend.appendChild(li);
+  });
+
+  // Filtre butonları
+  const filtreler = [
+    { label:'Tümü', fn: () => { zamanAktifSetler = new Set(Object.keys(ZAMAN_RENKLER)); } },
+    { label:'Finansal', fn: () => { zamanAktifSetler = new Set(['TL','Dolar','Altın','Gümüş','BIST-100','BTC']); } },
+    { label:'Konut', fn: () => { zamanAktifSetler = new Set(['TL','İst. Konut','Ank. Konut','İzm. Konut']); } },
+    { label:'Sıfırla', fn: () => { zamanAktifSetler = new Set(['TL','Dolar','Altın','BIST-100','İst. Konut']); } },
+  ];
+  filtreler.forEach(f => {
+    const btn = document.createElement('button');
+    btn.className = 'zaman-filtre-btn';
+    btn.textContent = f.label;
+    btn.onclick = () => { f.fn(); olusturLegendFiltre(); cizZamanGrafik(); };
+    filtre.appendChild(btn);
+  });
+}
+
+function cizZamanGrafik() {
+  if (!zamanVeri) return;
+  const { yillar, seriler } = zamanVeri;
+
+  const datasets = Object.entries(seriler)
+    .filter(([ad]) => zamanAktifSetler.has(ad))
+    .map(([ad, data]) => ({
+      label: ad,
+      data,
+      borderColor: ZAMAN_RENKLER[ad].border,
+      backgroundColor: ZAMAN_RENKLER[ad].bg,
+      borderWidth: ad === 'TL' ? 2.5 : 1.8,
+      borderDash: ZAMAN_RENKLER[ad].dash,
+      pointRadius: yillar.length <= 10 ? 4 : 2,
+      pointHoverRadius: 6,
+      tension: 0.35,
+      fill: ad === 'TL',
+      spanGaps: true,
+    }));
+
+  if (zamanChartInst) zamanChartInst.destroy();
+  zamanChartInst = new Chart(document.getElementById('zamanChart'), {
+    type: 'line',
+    data: { labels: yillar, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: {
+        duration: 1200,
+        easing: 'easeInOutQuart',
+        x: { from: 0 },
+      },
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: ctx => `${ctx[0].label} yılı`,
+            label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y != null ? ctx.parsed.y.toFixed(1) : '—'}`,
+            afterBody: ctx => {
+              const maxVal = Math.max(...ctx.map(c => c.parsed.y || 0));
+              const best = ctx.find(c => c.parsed.y === maxVal);
+              return best ? [`─`, `En iyi: ${best.dataset.label}`] : [];
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { font: { size: 11 }, maxRotation: 45, autoSkip: true, maxTicksLimit: 10 },
+          grid: { color: 'rgba(26,24,20,0.05)' }
+        },
+        y: {
+          title: { display: true, text: 'Değer (Başlangıç = 100)', font: { size: 11 } },
+          ticks: { font: { size: 11 }, callback: v => v },
+          grid: { color: 'rgba(26,24,20,0.05)' }
+        }
+      }
+    }
+  });
 }
 
 function buildTweet(wid){
