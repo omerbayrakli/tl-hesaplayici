@@ -20,7 +20,7 @@
   --border: rgba(26,24,20,0.1); --shadow: 0 2px 24px rgba(26,24,20,0.08);
 }
 /* ── TICKER BAR ── */
-.ticker-wrap { position:fixed; top:0; left:0; right:0; z-index:100; background:#1A1814; height:36px; overflow:hidden; border-bottom:1px solid rgba(255,255,255,0.06); }
+.ticker-wrap { position:fixed; top:48px; left:0; right:0; z-index:99; background:#1A1814; height:36px; overflow:hidden; border-bottom:1px solid rgba(255,255,255,0.06); }
 .ticker-inner { display:flex; align-items:center; height:100%; white-space:nowrap; animation:ticker 40s linear infinite; }
 .ticker-inner:hover { animation-play-state:paused; }
 .ticker-item { display:inline-flex; align-items:center; gap:6px; padding:0 24px; font-size:12px; font-weight:500; color:rgba(255,255,255,0.7); flex-shrink:0; }
@@ -30,7 +30,7 @@
 .ticker-item .tdown { color:#ff6b6b; }
 .ticker-sep { color:rgba(255,255,255,0.15); padding:0 4px; }
 @keyframes ticker { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
-body { padding-top:36px; }
+body { padding-top:84px; }
 
 @media(max-width:600px){ .ticker-item { padding:0 16px; font-size:11px; } }
 .page { max-width:680px; margin:0 auto; padding:3rem 1.5rem 5rem; }
@@ -247,7 +247,12 @@ h1 em { font-style:italic; color:var(--accent); }
 </style>
 </head>
 <body>
-<!-- TICKER BAR -->
+<!-- NAV -->
+<nav style="background:#1A1814;padding:0 1.5rem;display:flex;align-items:center;gap:2px;height:48px;position:sticky;top:0;z-index:100;">
+  <span style="color:rgba(255,255,255,0.3);font-size:12px;font-family:'Fraunces',serif;margin-right:1rem;">TL ◆</span>
+  <a href="index.html" style="color:#fff;text-decoration:none;font-size:13px;font-weight:500;padding:6px 14px;border-radius:8px;background:rgba(255,255,255,0.12);">Hafıza Makinesi</a>
+  <a href="ekonometri.html" style="color:rgba(255,255,255,0.5);text-decoration:none;font-size:13px;font-weight:500;padding:6px 14px;border-radius:8px;transition:all 0.15s;">Ekonometri & Haritalar</a>
+</nav>
 <div class="ticker-wrap">
   <div class="ticker-inner" id="tickerInner">
     <div class="ticker-item"><span class="tname">USD/TRY</span><span class="tval" id="t-usd">—</span><span id="t-usd-d">—</span></div>

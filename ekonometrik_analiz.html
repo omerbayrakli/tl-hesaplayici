@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ekonometri & Haritalar — TL Hafıza Makinesi</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,700;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#F5F0E8; --card:#FFFFFF; --text:#1A1814; --muted:#8A8680;
+  --accent:#C84B31; --accent2:#2D6A4F; --accent3:#1565C0;
+  --border:rgba(26,24,20,0.1); --shadow:0 2px 24px rgba(26,24,20,0.08);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;}
+
+/* NAV */
+.nav{background:#1A1814;padding:0 1.5rem;display:flex;align-items:center;gap:2px;height:48px;position:sticky;top:0;z-index:100;}
+.nav a{color:rgba(255,255,255,0.5);text-decoration:none;font-size:13px;font-weight:500;padding:6px 14px;border-radius:8px;transition:all 0.15s;}
+.nav a:hover{color:#fff;background:rgba(255,255,255,0.08);}
+.nav a.aktif{color:#fff;background:rgba(255,255,255,0.12);}
+.nav-logo{color:rgba(255,255,255,0.3);font-size:12px;margin-right:1rem;font-family:'Fraunces',serif;}
+
+.page{max-width:960px;margin:0 auto;padding:2.5rem 1.5rem 5rem;}
+
+/* HEADER */
+.header{margin-bottom:2rem;}
+.tag{display:inline-block;font-size:11px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent);background:rgba(200,75,49,0.1);padding:4px 10px;border-radius:20px;margin-bottom:1rem;}
+h1{font-family:'Fraunces',serif;font-weight:700;font-size:clamp(2rem,6vw,3.2rem);line-height:1.1;margin-bottom:0.5rem;}
+h1 em{font-style:italic;color:var(--accent);}
+.desc{font-size:14px;color:var(--muted);line-height:1.6;}
+
+/* KONTROL PANELİ */
+.kontrol{background:var(--card);border-radius:20px;box-shadow:var(--shadow);padding:1.25rem 1.5rem;margin-bottom:1.5rem;display:flex;gap:1rem;flex-wrap:wrap;align-items:center;}
+.kontrol label{font-size:12px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;display:block;}
+.kontrol select{background:var(--bg);border:1.5px solid transparent;border-radius:12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;padding:8px 14px;outline:none;cursor:pointer;-webkit-appearance:none;transition:border-color 0.2s;}
+.kontrol select:focus{border-color:var(--accent);}
+.kontrol-grup{display:flex;flex-direction:column;}
+
+/* HARITA ALANI */
+.harita-wrap{display:grid;grid-template-columns:1fr 300px;gap:1.5rem;margin-bottom:1.5rem;}
+.harita-kart{background:var(--card);border-radius:20px;box-shadow:var(--shadow);padding:1.5rem;}
+.harita-baslik{font-size:13px;font-weight:500;color:var(--muted);margin-bottom:1rem;}
+#turkiyeHarita{width:100%;cursor:pointer;}
+#turkiyeHarita path{transition:opacity 0.15s,filter 0.15s;}
+#turkiyeHarita path:hover{opacity:0.8;filter:brightness(1.1);}
+
+/* LEGEND */
+.legend-kart{background:var(--card);border-radius:20px;box-shadow:var(--shadow);padding:1.5rem;display:flex;flex-direction:column;gap:1rem;}
+.legend-baslik{font-size:12px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;}
+.legend-scale{display:flex;flex-direction:column;gap:6px;}
+.legend-bar{height:120px;width:24px;border-radius:6px;margin-bottom:8px;}
+.legend-labels{display:flex;flex-direction:column;justify-content:space-between;font-size:11px;color:var(--muted);height:120px;}
+
+/* TOOLTIP */
+.tooltip{position:fixed;background:#1A1814;color:#fff;border-radius:12px;padding:12px 16px;font-size:12px;pointer-events:none;z-index:999;display:none;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,0.2);}
+.tooltip-il{font-family:'Fraunces',serif;font-size:1.1rem;font-weight:700;margin-bottom:8px;}
+.tooltip-row{display:flex;justify-content:space-between;gap:16px;margin-bottom:3px;}
+.tooltip-key{color:rgba(255,255,255,0.5);}
+.tooltip-val{font-weight:600;color:#fff;}
+
+/* SEÇİLİ İL PANELİ */
+.il-panel{background:var(--card);border-radius:20px;box-shadow:var(--shadow);padding:1.5rem;margin-bottom:1.5rem;display:none;}
+.il-panel.goster{display:block;animation:fadeUp 0.3s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.il-panel-baslik{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.25rem;flex-wrap:wrap;gap:0.5rem;}
+.il-adi{font-family:'Fraunces',serif;font-size:1.8rem;font-weight:700;}
+.il-bolge{font-size:12px;color:var(--muted);background:var(--bg);padding:4px 10px;border-radius:20px;}
+.il-stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;}
+.il-stat{background:var(--bg);border-radius:12px;padding:1rem;}
+.il-stat-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px;}
+.il-stat-value{font-family:'Fraunces',serif;font-size:1.3rem;font-weight:700;color:var(--text);}
+.il-stat-value.iyi{color:var(--accent2);}
+.il-stat-value.kotu{color:var(--accent);}
+
+/* SIRALAMA */
+.siralama-kart{background:var(--card);border-radius:20px;box-shadow:var(--shadow);padding:1.5rem;margin-bottom:1.5rem;}
+.siralama-baslik{font-size:13px;font-weight:500;color:var(--muted);margin-bottom:1rem;display:flex;justify-content:space-between;align-items:center;}
+.siralama-tabs{display:flex;gap:6px;}
+.stab{font-size:11px;font-weight:500;padding:4px 12px;border-radius:20px;border:0.5px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all 0.15s;font-family:'DM Sans',sans-serif;}
+.stab.aktif{background:var(--text);color:var(--bg);border-color:var(--text);}
+.siralama-liste{display:flex;flex-direction:column;gap:6px;}
+.siralama-satir{display:flex;align-items:center;gap:10px;padding:6px 0;}
+.siralama-no{font-size:11px;color:var(--muted);width:20px;text-align:right;flex-shrink:0;}
+.siralama-il-adi{font-size:13px;font-weight:500;width:100px;flex-shrink:0;cursor:pointer;}
+.siralama-il-adi:hover{color:var(--accent);}
+.siralama-bar-wrap{flex:1;background:var(--bg);border-radius:6px;height:16px;overflow:hidden;}
+.siralama-bar{height:100%;border-radius:6px;transition:width 0.8s cubic-bezier(0.4,0,0.2,1);}
+.siralama-deger{font-size:11px;font-weight:600;width:80px;text-align:right;flex-shrink:0;}
+
+/* FOOTER */
+.footer{margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);font-size:12px;color:var(--muted);line-height:1.8;}
+
+@media(max-width:700px){
+  .harita-wrap{grid-template-columns:1fr;}
+  .legend-kart{flex-direction:row;align-items:center;gap:1.5rem;}
+  .il-stat-grid{grid-template-columns:repeat(2,1fr);}
+  .siralama-il-adi{width:70px;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <span class="nav-logo">TL ◆</span>
+  <a href="index.html">Hafıza Makinesi</a>
+  <a href="ekonometri.html" class="aktif">Ekonometri & Haritalar</a>
+</nav>
+
+<div class="tooltip" id="tooltip"></div>
+
+<div class="page">
+  <div class="header">
+    <span class="tag">Türkiye Ekonometri</span>
+    <h1>Bölgesel <em>Eşitsizlik</em><br>Haritası</h1>
+    <p class="desc">81 il bazında kişi başı gelir, ortalama ücret, işsizlik ve nüfus verilerini karşılaştırın. TÜİK 2023 verileri.</p>
+  </div>
+
+  <div class="kontrol">
+    <div class="kontrol-grup">
+      <label>Gösterge</label>
+      <select id="gosterge" onchange="haritaGuncelle()">
+        <option value="gsyh">Kişi Başı GSYH (TL)</option>
+        <option value="ucret">Ortalama Aylık Ücret (TL)</option>
+        <option value="issizlik">İşsizlik Oranı (%)</option>
+        <option value="nufus">Nüfus (kişi)</option>
+      </select>
+    </div>
+    <div class="kontrol-grup">
+      <label>Renk Paleti</label>
+      <select id="palet" onchange="haritaGuncelle()">
+        <option value="reds">Kırmızı tonu</option>
+        <option value="blues">Mavi tonu</option>
+        <option value="greens">Yeşil tonu</option>
+        <option value="purples">Mor tonu</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="harita-wrap">
+    <div class="harita-kart">
+      <div class="harita-baslik" id="haritaBaslik">Kişi Başı GSYH — İl Bazında (2023)</div>
+      <svg id="turkiyeHarita" viewBox="0 0 800 450" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+    <div class="legend-kart">
+      <div class="legend-baslik" id="legendBaslik">Kişi Başı GSYH</div>
+      <div style="display:flex;gap:10px;align-items:flex-start;">
+        <canvas id="legendCanvas" width="24" height="120" style="border-radius:6px;"></canvas>
+        <div class="legend-labels" id="legendLabels"></div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:auto;">Kaynak: TÜİK 2023</div>
+    </div>
+  </div>
+
+  <!-- SEÇİLİ İL -->
+  <div class="il-panel" id="ilPanel">
+    <div class="il-panel-baslik">
+      <div>
+        <div class="il-adi" id="ilAdi">—</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:4px;" id="ilAciklama">—</div>
+      </div>
+      <span class="il-bolge" id="ilBolge">—</span>
+    </div>
+    <div class="il-stat-grid">
+      <div class="il-stat">
+        <div class="il-stat-label">Kişi Başı GSYH</div>
+        <div class="il-stat-value" id="ilGsyh">—</div>
+      </div>
+      <div class="il-stat">
+        <div class="il-stat-label">Ort. Aylık Ücret</div>
+        <div class="il-stat-value" id="ilUcret">—</div>
+      </div>
+      <div class="il-stat">
+        <div class="il-stat-label">İşsizlik</div>
+        <div class="il-stat-value" id="ilIssizlik">—</div>
+      </div>
+      <div class="il-stat">
+        <div class="il-stat-label">Nüfus</div>
+        <div class="il-stat-value" id="ilNufus">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SIRALAMA -->
+  <div class="siralama-kart">
+    <div class="siralama-baslik">
+      <span id="siralamaBaslik">İller Sıralaması — Kişi Başı GSYH</span>
+      <div class="siralama-tabs">
+        <button class="stab aktif" onclick="siralamaGoster('ust')">İlk 10</button>
+        <button class="stab" onclick="siralamaGoster('alt')">Son 10</button>
+        <button class="stab" onclick="siralamaGoster('hepsi')">Tümü</button>
+      </div>
+    </div>
+    <div class="siralama-liste" id="siralamaListe"></div>
+  </div>
+
+  <div class="footer">
+    * TÜİK 2023 yılı verileri kullanılmıştır. Kişi başı GSYH ve ücret verileri yaklaşık değerlerdir.<br>
+    * İl sınırları basitleştirilmiş gösterim içindir.
+  </div>
+</div>
+
+<script>
+// ── İL VERİLERİ (TÜİK 2023) ──────────────────────────────────────────────────
+const IL_VERISI = {
+  "İstanbul":    {gsyh:285000, ucret:28500, issizlik:8.2,  nufus:15840900, bolge:"Marmara"},
+  "Ankara":      {gsyh:198000, ucret:22000, issizlik:9.1,  nufus:5782285,  bolge:"İç Anadolu"},
+  "İzmir":       {gsyh:195000, ucret:21500, issizlik:9.8,  nufus:4479525,  bolge:"Ege"},
+  "Bursa":       {gsyh:172000, ucret:19800, issizlik:8.5,  nufus:3214571,  bolge:"Marmara"},
+  "Antalya":     {gsyh:168000, ucret:18500, issizlik:7.2,  nufus:2688004,  bolge:"Akdeniz"},
+  "Konya":       {gsyh:128000, ucret:16200, issizlik:7.8,  nufus:2296347,  bolge:"İç Anadolu"},
+  "Adana":       {gsyh:118000, ucret:15800, issizlik:14.2, nufus:2274106,  bolge:"Akdeniz"},
+  "Gaziantep":   {gsyh:145000, ucret:16500, issizlik:12.5, nufus:2185280,  bolge:"Güneydoğu Anadolu"},
+  "Şanlıurfa":   {gsyh:62000,  ucret:12200, issizlik:18.5, nufus:2215210,  bolge:"Güneydoğu Anadolu"},
+  "Kocaeli":     {gsyh:312000, ucret:27500, issizlik:6.8,  nufus:2070530,  bolge:"Marmara"},
+  "Mersin":      {gsyh:115000, ucret:15200, issizlik:12.8, nufus:1916432,  bolge:"Akdeniz"},
+  "Diyarbakır":  {gsyh:58000,  ucret:12500, issizlik:19.2, nufus:1791373,  bolge:"Güneydoğu Anadolu"},
+  "Hatay":       {gsyh:88000,  ucret:14200, issizlik:14.5, nufus:1686043,  bolge:"Akdeniz"},
+  "Manisa":      {gsyh:138000, ucret:17200, issizlik:8.2,  nufus:1468279,  bolge:"Ege"},
+  "Kayseri":     {gsyh:142000, ucret:17500, issizlik:7.5,  nufus:1440530,  bolge:"İç Anadolu"},
+  "Samsun":      {gsyh:105000, ucret:14800, issizlik:9.5,  nufus:1358953,  bolge:"Karadeniz"},
+  "Balıkesir":   {gsyh:135000, ucret:17000, issizlik:7.8,  nufus:1289577,  bolge:"Marmara"},
+  "Kahramanmaraş":{gsyh:95000, ucret:14500, issizlik:11.2, nufus:1178234,  bolge:"Akdeniz"},
+  "Van":         {gsyh:52000,  ucret:11800, issizlik:21.5, nufus:1150308,  bolge:"Doğu Anadolu"},
+  "Aydın":       {gsyh:130000, ucret:16800, issizlik:8.5,  nufus:1148627,  bolge:"Ege"},
+  "Tekirdağ":    {gsyh:182000, ucret:20500, issizlik:6.5,  nufus:1142085,  bolge:"Marmara"},
+  "Sakarya":     {gsyh:158000, ucret:18800, issizlik:7.2,  nufus:1065691,  bolge:"Marmara"},
+  "Eskişehir":   {gsyh:162000, ucret:19200, issizlik:7.0,  nufus:914475,   bolge:"İç Anadolu"},
+  "Denizli":     {gsyh:152000, ucret:18200, issizlik:7.5,  nufus:1040772,  bolge:"Ege"},
+  "Trabzon":     {gsyh:108000, ucret:15000, issizlik:8.8,  nufus:818023,   bolge:"Karadeniz"},
+  "Malatya":     {gsyh:92000,  ucret:14200, issizlik:10.5, nufus:812580,   bolge:"Doğu Anadolu"},
+  "Erzurum":     {gsyh:72000,  ucret:13200, issizlik:12.8, nufus:769085,   bolge:"Doğu Anadolu"},
+  "Ordu":        {gsyh:82000,  ucret:13500, issizlik:9.2,  nufus:771610,   bolge:"Karadeniz"},
+  "Muğla":       {gsyh:175000, ucret:19500, issizlik:6.8,  nufus:1075706,  bolge:"Ege"},
+  "Afyonkarahisar":{gsyh:118000,ucret:15500,issizlik:7.8, nufus:742248,   bolge:"Ege"},
+  "Zonguldak":   {gsyh:115000, ucret:15800, issizlik:8.5,  nufus:589849,   bolge:"Karadeniz"},
+  "Mardin":      {gsyh:55000,  ucret:12200, issizlik:17.8, nufus:860399,   bolge:"Güneydoğu Anadolu"},
+  "Batman":      {gsyh:58000,  ucret:12500, issizlik:18.2, nufus:651376,   bolge:"Güneydoğu Anadolu"},
+  "Elazığ":      {gsyh:85000,  ucret:13800, issizlik:11.5, nufus:598021,   bolge:"Doğu Anadolu"},
+  "Sivas":       {gsyh:88000,  ucret:14000, issizlik:10.2, nufus:608014,   bolge:"İç Anadolu"},
+  "Tokat":       {gsyh:78000,  ucret:13200, issizlik:10.5, nufus:586481,   bolge:"Karadeniz"},
+  "Çorum":       {gsyh:98000,  ucret:14500, issizlik:8.5,  nufus:519741,   bolge:"Karadeniz"},
+  "Amasya":      {gsyh:88000,  ucret:13800, issizlik:9.0,  nufus:335860,   bolge:"Karadeniz"},
+  "Kastamonu":   {gsyh:92000,  ucret:14000, issizlik:8.2,  nufus:379897,   bolge:"Karadeniz"},
+  "Çanakkale":   {gsyh:128000, ucret:16500, issizlik:7.5,  nufus:564895,   bolge:"Marmara"},
+  "Edirne":      {gsyh:122000, ucret:16000, issizlik:7.8,  nufus:413339,   bolge:"Marmara"},
+  "Kırklareli":  {gsyh:135000, ucret:17000, issizlik:7.2,  nufus:372906,   bolge:"Marmara"},
+  "Yalova":      {gsyh:165000, ucret:19000, issizlik:7.0,  nufus:309010,   bolge:"Marmara"},
+  "Bolu":        {gsyh:142000, ucret:17500, issizlik:7.5,  nufus:331904,   bolge:"Batı Karadeniz"},
+  "Düzce":       {gsyh:125000, ucret:16200, issizlik:8.0,  nufus:415272,   bolge:"Batı Karadeniz"},
+  "Giresun":     {gsyh:85000,  ucret:13500, issizlik:9.5,  nufus:442380,   bolge:"Karadeniz"},
+  "Rize":        {gsyh:98000,  ucret:14500, issizlik:8.8,  nufus:355681,   bolge:"Karadeniz"},
+  "Artvin":      {gsyh:92000,  ucret:14200, issizlik:8.5,  nufus:170875,   bolge:"Karadeniz"},
+  "Bayburt":     {gsyh:72000,  ucret:13000, issizlik:10.5, nufus:85399,    bolge:"Kuzeydoğu Anadolu"},
+  "Gümüşhane":   {gsyh:75000,  ucret:13200, issizlik:10.2, nufus:174524,   bolge:"Karadeniz"},
+  "Sinop":       {gsyh:82000,  ucret:13500, issizlik:9.5,  nufus:210498,   bolge:"Karadeniz"},
+  "Bartın":      {gsyh:88000,  ucret:14000, issizlik:9.0,  nufus:208790,   bolge:"Batı Karadeniz"},
+  "Karabük":     {gsyh:112000, ucret:15500, issizlik:8.5,  nufus:259453,   bolge:"Batı Karadeniz"},
+  "Çankırı":     {gsyh:85000,  ucret:13800, issizlik:9.2,  nufus:185459,   bolge:"İç Anadolu"},
+  "Kırıkkale":   {gsyh:98000,  ucret:14800, issizlik:9.5,  nufus:272298,   bolge:"İç Anadolu"},
+  "Kırşehir":    {gsyh:92000,  ucret:14200, issizlik:9.0,  nufus:241058,   bolge:"İç Anadolu"},
+  "Nevşehir":    {gsyh:102000, ucret:14800, issizlik:8.5,  nufus:306503,   bolge:"İç Anadolu"},
+  "Aksaray":     {gsyh:88000,  ucret:13800, issizlik:9.5,  nufus:445614,   bolge:"İç Anadolu"},
+  "Niğde":       {gsyh:88000,  ucret:13800, issizlik:9.8,  nufus:376415,   bolge:"İç Anadolu"},
+  "Karaman":     {gsyh:102000, ucret:15000, issizlik:8.8,  nufus:255384,   bolge:"İç Anadolu"},
+  "Isparta":     {gsyh:102000, ucret:15000, issizlik:8.5,  nufus:435617,   bolge:"Akdeniz"},
+  "Burdur":      {gsyh:108000, ucret:15200, issizlik:8.2,  nufus:267137,   bolge:"Akdeniz"},
+  "Uşak":        {gsyh:112000, ucret:15500, issizlik:8.5,  nufus:376800,   bolge:"Ege"},
+  "Kütahya":     {gsyh:108000, ucret:15200, issizlik:8.8,  nufus:572000,   bolge:"Ege"},
+  "Bilecik":     {gsyh:142000, ucret:17200, issizlik:7.5,  nufus:231195,   bolge:"Marmara"},
+  "Yozgat":      {gsyh:68000,  ucret:12800, issizlik:11.5, nufus:405874,   bolge:"İç Anadolu"},
+  "Kilis":       {gsyh:72000,  ucret:13000, issizlik:15.5, nufus:143483,   bolge:"Güneydoğu Anadolu"},
+  "Adıyaman":    {gsyh:65000,  ucret:12500, issizlik:16.8, nufus:640216,   bolge:"Güneydoğu Anadolu"},
+  "Osmaniye":    {gsyh:82000,  ucret:13500, issizlik:13.5, nufus:556873,   bolge:"Akdeniz"},
+  "Siirt":       {gsyh:52000,  ucret:12000, issizlik:20.5, nufus:351392,   bolge:"Güneydoğu Anadolu"},
+  "Şırnak":      {gsyh:45000,  ucret:11500, issizlik:22.8, nufus:582536,   bolge:"Güneydoğu Anadolu"},
+  "Hakkari":     {gsyh:42000,  ucret:11200, issizlik:24.5, nufus:281492,   bolge:"Doğu Anadolu"},
+  "Bitlis":      {gsyh:48000,  ucret:11500, issizlik:22.2, nufus:343792,   bolge:"Doğu Anadolu"},
+  "Muş":         {gsyh:48000,  ucret:11500, issizlik:21.8, nufus:469514,   bolge:"Doğu Anadolu"},
+  "Bingöl":      {gsyh:52000,  ucret:11800, issizlik:20.5, nufus:283650,   bolge:"Doğu Anadolu"},
+  "Tunceli":     {gsyh:72000,  ucret:13000, issizlik:12.5, nufus:86003,    bolge:"Doğu Anadolu"},
+  "Ağrı":        {gsyh:45000,  ucret:11300, issizlik:23.5, nufus:547210,   bolge:"Doğu Anadolu"},
+  "Iğdır":       {gsyh:52000,  ucret:11800, issizlik:19.5, nufus:200204,   bolge:"Kuzeydoğu Anadolu"},
+  "Ardahan":     {gsyh:58000,  ucret:12000, issizlik:16.5, nufus:98258,    bolge:"Kuzeydoğu Anadolu"},
+  "Kars":        {gsyh:58000,  ucret:12200, issizlik:17.5, nufus:285551,   bolge:"Kuzeydoğu Anadolu"},
+};
+
+// ── RENK PALETLERİ ────────────────────────────────────────────────────────────
+const PALETLER = {
+  reds:    ['#fde8e3','#f9b8ac','#f08070','#e05040','#C84B31','#a03020','#701808'],
+  blues:   ['#e3f0fd','#acd0f9','#70a8f0','#4080e0','#1565C0','#1040a0','#082878'],
+  greens:  ['#e3f5ec','#acdfbf','#70c890','#40b060','#2D6A4F','#1a5038','#0a3020'],
+  purples: ['#f0e3fd','#d0acf9','#b080f0','#9050e0','#7B1FA2','#601080','#400858'],
+};
+
+// ── İL KOORDİNATLARI (SVG viewBox 0 0 800 450) ───────────────────────────────
+// Basitleştirilmiş merkez noktaları — bubble/circle harita
+const IL_POZISYON = {
+  "İstanbul":{x:118,y:82},"Tekirdağ":{x:88,y:95},"Edirne":{x:60,y:72},"Kırklareli":{x:88,y:68},
+  "Çanakkale":{x:78,y:118},"Balıkesir":{x:112,y:140},"Bursa":{x:148,y:120},"Yalova":{x:148,y:105},
+  "Kocaeli":{x:175,y:95},"Sakarya":{x:198,y:98},"Bolu":{x:222,y:95},"Düzce":{x:208,y:88},
+  "Zonguldak":{x:240,y:78},"Karabük":{x:262,y:82},"Bartın":{x:255,y:72},
+  "Kastamonu":{x:290,y:78},"Sinop":{x:315,y:68},"Samsun":{x:355,y:72},
+  "Ordu":{x:392,y:78},"Giresun":{x:418,y:82},"Trabzon":{x:448,y:80},
+  "Rize":{x:472,y:78},"Artvin":{x:492,y:82},"Ardahan":{x:508,y:95},
+  "Kars":{x:528,y:105},"Iğdır":{x:548,y:118},"Ağrı":{x:528,y:128},
+  "Erzurum":{x:498,y:118},"Bayburt":{x:468,y:98},"Gümüşhane":{x:445,y:102},
+  "Erzincan":{x:448,y:118},"Tunceli":{x:435,y:135},"Bingöl":{x:458,y:140},
+  "Elazığ":{x:442,y:152},"Malatya":{x:418,y:155},"Diyarbakır":{x:442,y:172},
+  "Mardin":{x:448,y:192},"Batman":{x:465,y:185},"Siirt":{x:478,y:192},
+  "Şırnak":{x:488,y:205},"Hakkari":{x:498,y:222},"Van":{x:518,y:185},
+  "Muş":{x:488,y:158},"Bitlis":{x:498,y:172},"Ağrı":{x:528,y:128},
+  "Ankara":{x:285,y:132},"Çankırı":{x:295,y:108},"Kırıkkale":{x:302,y:128},
+  "Eskişehir":{x:228,y:132},"Afyonkarahisar":{x:202,y:168},"Kütahya":{x:185,y:148},
+  "Bilecik":{x:188,y:128},"İzmir":{x:118,y:175},"Manisa":{x:142,y:162},
+  "Aydın":{x:148,y:192},"Muğla":{x:165,y:215},"Denizli":{x:182,y:198},
+  "Uşak":{x:175,y:178},"Antalya":{x:218,y:245},"Burdur":{x:195,y:230},
+  "Isparta":{x:205,y:218},"Konya":{x:268,y:202},"Karaman":{x:275,y:222},
+  "Aksaray":{x:298,y:198},"Niğde":{x:312,y:208},"Nevşehir":{x:322,y:190},
+  "Kırşehir":{x:322,y:162},"Yozgat":{x:348,y:152},"Sivas":{x:382,y:142},
+  "Tokat":{x:368,y:122},"Amasya":{x:345,y:108},"Çorum":{x:325,y:102},
+  "Kayseri":{x:348,y:178},"Adana":{x:298,y:248},"Mersin":{x:268,y:255},
+  "Osmaniye":{x:322,y:245},"Hatay":{x:315,y:268},"Kahramanmaraş":{x:345,y:235},
+  "Gaziantep":{x:348,y:258},"Kilis":{x:332,y:268},"Şanlıurfa":{x:382,y:262},
+  "Adıyaman":{x:370,y:248},"Muş":{x:488,y:158},
+};
+
+// ── RENK HESAPLA ─────────────────────────────────────────────────────────────
+function renkhesapla(deger, min, max, palet) {
+  const renkler = PALETLER[palet] || PALETLER.reds;
+  const t = Math.max(0, Math.min(1, (deger - min) / (max - min)));
+  const idx = Math.floor(t * (renkler.length - 1));
+  return renkler[idx];
+}
+
+let aktifGosterge = 'gsyh';
+let aktifSiralama = 'ust';
+let secilenIl = null;
+
+function formatDeger(deger, gosterge) {
+  if (gosterge === 'gsyh' || gosterge === 'ucret') {
+    return deger >= 1000000
+      ? (deger/1000000).toFixed(1) + ' M TL'
+      : deger.toLocaleString('tr-TR') + ' TL';
+  }
+  if (gosterge === 'issizlik') return '%' + deger.toFixed(1);
+  if (gosterge === 'nufus') return deger >= 1000000
+    ? (deger/1000000).toFixed(2) + ' M'
+    : deger.toLocaleString('tr-TR');
+  return deger;
+}
+
+const GOSTERGE_ISIM = {
+  gsyh: 'Kişi Başı GSYH', ucret: 'Ort. Aylık Ücret',
+  issizlik: 'İşsizlik Oranı', nufus: 'Nüfus'
+};
+
+function haritaGuncelle() {
+  aktifGosterge = document.getElementById('gosterge').value;
+  const palet = document.getElementById('palet').value;
+  const degerler = Object.values(IL_VERISI).map(d => d[aktifGosterge]);
+  const min = Math.min(...degerler);
+  const max = Math.max(...degerler);
+
+  // Başlıkları güncelle
+  document.getElementById('haritaBaslik').textContent = GOSTERGE_ISIM[aktifGosterge] + ' — İl Bazında (2023)';
+  document.getElementById('legendBaslik').textContent = GOSTERGE_ISIM[aktifGosterge];
+  document.getElementById('siralamaBaslik').textContent = `İller Sıralaması — ${GOSTERGE_ISIM[aktifGosterge]}`;
+
+  // SVG'yi çiz
+  const svg = document.getElementById('turkiyeHarita');
+  svg.innerHTML = '';
+
+  // Arka plan
+  const bg = document.createElementNS('http://www.w3.org/2000/svg','rect');
+  bg.setAttribute('width','800'); bg.setAttribute('height','450');
+  bg.setAttribute('fill','#f8f5ef'); bg.setAttribute('rx','0');
+  svg.appendChild(bg);
+
+  // Her il için daire çiz
+  Object.entries(IL_POZISYON).forEach(([il, pos]) => {
+    const veri = IL_VERISI[il];
+    if (!veri) return;
+    const deger = veri[aktifGosterge];
+    const renk = renkhesapla(deger, min, max, palet);
+
+    // Boyut nüfusa göre
+    const r = Math.max(10, Math.min(28, 8 + (veri.nufus / 400000)));
+
+    const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.style.cursor = 'pointer';
+
+    const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    circle.setAttribute('cx', pos.x);
+    circle.setAttribute('cy', pos.y);
+    circle.setAttribute('r', r);
+    circle.setAttribute('fill', renk);
+    circle.setAttribute('stroke', '#fff');
+    circle.setAttribute('stroke-width', '1.5');
+    circle.style.transition = 'all 0.2s';
+
+    const text = document.createElementNS('http://www.w3.org/2000/svg','text');
+    text.setAttribute('x', pos.x);
+    text.setAttribute('y', pos.y + 4);
+    text.setAttribute('text-anchor','middle');
+    text.setAttribute('font-size', r < 14 ? '6' : '7');
+    text.setAttribute('font-family','DM Sans,sans-serif');
+    text.setAttribute('font-weight','600');
+    text.setAttribute('fill', '#fff');
+    text.setAttribute('pointer-events','none');
+    text.textContent = il.substring(0,3);
+
+    g.appendChild(circle);
+    g.appendChild(text);
+
+    // Hover & tıklama
+    g.addEventListener('mouseenter', (e) => {
+      circle.setAttribute('stroke-width','3');
+      circle.setAttribute('stroke','#1A1814');
+      tooltipGoster(e, il, veri, aktifGosterge);
+    });
+    g.addEventListener('mousemove', (e) => tooltipTasI(e));
+    g.addEventListener('mouseleave', () => {
+      circle.setAttribute('stroke-width', secilenIl===il ? '3':'1.5');
+      circle.setAttribute('stroke', secilenIl===il ? '#1A1814':'#fff');
+      tooltipGizle();
+    });
+    g.addEventListener('click', () => ilSec(il));
+
+    svg.appendChild(g);
+  });
+
+  // Legend güncelle
+  legendGuncelle(min, max, palet);
+  siralamaGuncelle();
+}
+
+function legendGuncelle(min, max, palet) {
+  const canvas = document.getElementById('legendCanvas');
+  const ctx = canvas.getContext('2d');
+  const renkler = PALETLER[palet] || PALETLER.reds;
+  const grad = ctx.createLinearGradient(0, 120, 0, 0);
+  renkler.forEach((r,i) => grad.addColorStop(i/(renkler.length-1), r));
+  ctx.fillStyle = grad;
+  ctx.fillRect(0,0,24,120);
+
+  const labels = document.getElementById('legendLabels');
+  labels.innerHTML = '';
+  [max, (max+min)/2, min].forEach(v => {
+    const span = document.createElement('span');
+    span.textContent = formatDeger(Math.round(v), aktifGosterge);
+    labels.appendChild(span);
+  });
+}
+
+function tooltipGoster(e, il, veri, gosterge) {
+  const t = document.getElementById('tooltip');
+  t.innerHTML = `
+    <div class="tooltip-il">${il}</div>
+    <div class="tooltip-row"><span class="tooltip-key">Bölge</span><span class="tooltip-val">${veri.bolge}</span></div>
+    <div class="tooltip-row"><span class="tooltip-key">KB GSYH</span><span class="tooltip-val">${formatDeger(veri.gsyh,'gsyh')}</span></div>
+    <div class="tooltip-row"><span class="tooltip-key">Ort. Ücret</span><span class="tooltip-val">${formatDeger(veri.ucret,'ucret')}</span></div>
+    <div class="tooltip-row"><span class="tooltip-key">İşsizlik</span><span class="tooltip-val">${formatDeger(veri.issizlik,'issizlik')}</span></div>
+    <div class="tooltip-row"><span class="tooltip-key">Nüfus</span><span class="tooltip-val">${formatDeger(veri.nufus,'nufus')}</span></div>
+  `;
+  t.style.display = 'block';
+  tooltipTasI(e);
+}
+function tooltipTasI(e) {
+  const t = document.getElementById('tooltip');
+  const x = e.clientX + 16, y = e.clientY - 10;
+  t.style.left = Math.min(x, window.innerWidth - 210) + 'px';
+  t.style.top = Math.max(y, 8) + 'px';
+}
+function tooltipGizle() { document.getElementById('tooltip').style.display='none'; }
+
+function ilSec(il) {
+  secilenIl = il;
+  const veri = IL_VERISI[il];
+  if (!veri) return;
+  const panel = document.getElementById('ilPanel');
+  panel.classList.add('goster');
+  document.getElementById('ilAdi').textContent = il;
+  document.getElementById('ilBolge').textContent = veri.bolge;
+  document.getElementById('ilAciklama').textContent = `Nüfus: ${formatDeger(veri.nufus,'nufus')} kişi`;
+
+  const gsyhEl = document.getElementById('ilGsyh');
+  gsyhEl.textContent = formatDeger(veri.gsyh,'gsyh');
+  gsyhEl.className = 'il-stat-value ' + (veri.gsyh > 150000 ? 'iyi' : veri.gsyh < 80000 ? 'kotu' : '');
+
+  const ucretEl = document.getElementById('ilUcret');
+  ucretEl.textContent = formatDeger(veri.ucret,'ucret');
+  ucretEl.className = 'il-stat-value ' + (veri.ucret > 18000 ? 'iyi' : veri.ucret < 13000 ? 'kotu' : '');
+
+  const issEl = document.getElementById('ilIssizlik');
+  issEl.textContent = formatDeger(veri.issizlik,'issizlik');
+  issEl.className = 'il-stat-value ' + (veri.issizlik > 15 ? 'kotu' : veri.issizlik < 9 ? 'iyi' : '');
+
+  document.getElementById('ilNufus').textContent = formatDeger(veri.nufus,'nufus');
+
+  panel.scrollIntoView({behavior:'smooth', block:'nearest'});
+  haritaGuncelle(); // Seçili ili vurgula
+}
+
+function siralamaGoster(tip) {
+  aktifSiralama = tip;
+  document.querySelectorAll('.stab').forEach(b => b.classList.remove('aktif'));
+  event.target.classList.add('aktif');
+  siralamaGuncelle();
+}
+
+function siralamaGuncelle() {
+  const gosterge = aktifGosterge;
+  const palet = document.getElementById('palet').value;
+  const sirali = Object.entries(IL_VERISI)
+    .sort((a,b) => b[1][gosterge] - a[1][gosterge]);
+
+  let liste;
+  if (aktifSiralama === 'ust') liste = sirali.slice(0,10);
+  else if (aktifSiralama === 'alt') liste = sirali.slice(-10).reverse();
+  else liste = sirali;
+
+  const degerler = Object.values(IL_VERISI).map(d=>d[gosterge]);
+  const maxD = Math.max(...degerler);
+  const renkler = PALETLER[palet];
+
+  const container = document.getElementById('siralamaListe');
+  container.innerHTML = liste.map(([il,veri],i) => {
+    const deger = veri[gosterge];
+    const pct = (deger/maxD*100).toFixed(1);
+    const renk = renkhesapla(deger, Math.min(...degerler), maxD, palet);
+    const gercekSira = sirali.findIndex(([s])=>s===il)+1;
+    return `<div class="siralama-satir">
+      <span class="siralama-no">${gercekSira}</span>
+      <span class="siralama-il-adi" onclick="ilSec('${il}')">${il}</span>
+      <div class="siralama-bar-wrap">
+        <div class="siralama-bar" style="width:${pct}%;background:${renk};"></div>
+      </div>
+      <span class="siralama-deger">${formatDeger(deger,gosterge)}</span>
+    </div>`;
+  }).join('');
+}
+
+// Başlat
+haritaGuncelle();
+</script>
+</body>
+</html>
