@@ -1,7 +1,7 @@
 {
-  "guncelleme": "2026-05-27 09:38 UTC",
+  "guncelleme": "2026-05-28 09:55 UTC",
   "bist": {
-    "anlik": 13662.8,
+    "anlik": 13662.75,
     "degisim": 0.0,
     "kaynak": "yfinance / Yahoo Finance"
   },
@@ -9,14 +9,14 @@
     {
       "ad": "Sanayi",
       "sembol": "XUSIN.IS",
-      "getiri_1y": 49.39,
+      "getiri_1y": 50.94,
       "gunluk_degisim": -1.39,
       "son_fiyat": 18085.4
     },
     {
       "ad": "Bankacılık",
       "sembol": "XBANK.IS",
-      "getiri_1y": 26.88,
+      "getiri_1y": 26.09,
       "gunluk_degisim": -1.42,
       "son_fiyat": 15499.8
     }
@@ -44,7 +44,7 @@
       "2023": 28.5041,
       "2024": 34.5281,
       "2025": 42.2485,
-      "2026": 45.9002
+      "2026": 45.8981
     },
     "altin_tarihsel": {
       "2005": 21.12,
@@ -68,7 +68,7 @@
       "2023": 1810.58,
       "2024": 2955.47,
       "2025": 5629.45,
-      "2026": 6673.53
+      "2026": 6524.18
     },
     "gumus_tarihsel": {
       "2005": 0.351,
@@ -92,11 +92,11 @@
       "2023": 21.2846,
       "2024": 34.9026,
       "2025": 73.7899,
-      "2026": 111.7124
+      "2026": 108.5494
     },
-    "usd_anlik": 45.9002,
-    "altin_anlik": 6673.53,
-    "gumus_anlik": 111.7124
+    "usd_anlik": 45.8981,
+    "altin_anlik": 6524.18,
+    "gumus_anlik": 108.5494
   },
   "enflasyon": {
     "tarihsel": {
@@ -147,7 +147,7 @@
     ]
   },
   "usd_try": {
-    "anlik": 45.9002,
+    "anlik": 45.8981,
     "tarihsel": {
       "2005": 1.3538,
       "2006": 1.4476,
@@ -170,18 +170,18 @@
       "2023": 28.5041,
       "2024": 34.5281,
       "2025": 42.2485,
-      "2026": 45.9002
+      "2026": 45.8981
     },
     "lineer_regresyon": {
       "slope": 1.759,
-      "intercept": -3534.9498,
+      "intercept": -3534.8997,
       "r2": 0.6489,
       "p_value": 0.0,
-      "t_stat": 6.0792
+      "t_stat": 6.0793
     },
     "log_lineer_regresyon": {
       "slope": 0.182,
-      "intercept": -365.3462,
+      "intercept": -365.3451,
       "r2": 0.9045,
       "p_value": 0.0,
       "t_stat": 13.7664
@@ -190,15 +190,15 @@
     "gelecek_tahmin": [
       {
         "yil": 2027,
-        "tahmin": 35.44
+        "tahmin": 35.48
       },
       {
         "yil": 2028,
-        "tahmin": 42.51
+        "tahmin": 42.56
       },
       {
         "yil": 2029,
-        "tahmin": 51.0
+        "tahmin": 51.05
       }
     ]
   },
