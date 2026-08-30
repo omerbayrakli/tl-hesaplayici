@@ -1,24 +1,24 @@
 {
-  "guncelleme": "2026-08-29 12:11 UTC",
+  "guncelleme": "2026-08-30 11:07 UTC",
   "bist": {
-    "anlik": 14575.5,
-    "degisim": 0.0,
+    "anlik": 14641.6,
+    "degisim": 0.45,
     "kaynak": "yfinance / Yahoo Finance"
   },
   "sektor_top5": [
     {
       "ad": "Sanayi",
       "sembol": "XUSIN.IS",
-      "getiri_1y": 36.67,
-      "gunluk_degisim": 0.4,
-      "son_fiyat": 20179.0
+      "getiri_1y": 38.17,
+      "gunluk_degisim": 1.09,
+      "son_fiyat": 20399.9
     },
     {
       "ad": "Bankacılık",
       "sembol": "XBANK.IS",
-      "getiri_1y": 0.59,
-      "gunluk_degisim": -0.08,
-      "son_fiyat": 16513.0
+      "getiri_1y": 1.85,
+      "gunluk_degisim": 1.25,
+      "son_fiyat": 16719.9
     }
   ],
   "fiyatlar": {
@@ -68,7 +68,7 @@
       "2023": 1810.58,
       "2024": 2955.47,
       "2025": 5629.45,
-      "2026": NaN
+      "2026": 7024.2
     },
     "gumus_tarihsel": {
       "2005": 0.351,
@@ -92,11 +92,11 @@
       "2023": 21.2846,
       "2024": 34.9026,
       "2025": 73.7899,
-      "2026": NaN
+      "2026": 105.111
     },
     "usd_anlik": 48.23,
-    "altin_anlik": NaN,
-    "gumus_anlik": NaN
+    "altin_anlik": 7024.2,
+    "gumus_anlik": 105.111
   },
   "enflasyon": {
     "tarihsel": {
