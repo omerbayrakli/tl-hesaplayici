@@ -1,24 +1,24 @@
 {
-  "guncelleme": "2026-09-03 10:35 UTC",
+  "guncelleme": "2026-09-04 10:27 UTC",
   "bist": {
-    "anlik": 13905.01,
-    "degisim": -1.04,
+    "anlik": 13976.59,
+    "degisim": 0.32,
     "kaynak": "yfinance / Yahoo Finance"
   },
   "sektor_top5": [
     {
       "ad": "Sanayi",
       "sembol": "XUSIN.IS",
-      "getiri_1y": 34.96,
-      "gunluk_degisim": -1.15,
-      "son_fiyat": 19265.64
+      "getiri_1y": 33.05,
+      "gunluk_degisim": -0.18,
+      "son_fiyat": 19113.72
     },
     {
       "ad": "Bankacılık",
       "sembol": "XBANK.IS",
-      "getiri_1y": 13.76,
-      "gunluk_degisim": 1.03,
-      "son_fiyat": 16564.82
+      "getiri_1y": 11.33,
+      "gunluk_degisim": 0.91,
+      "son_fiyat": 16634.57
     }
   ],
   "fiyatlar": {
@@ -44,7 +44,7 @@
       "2023": 28.5041,
       "2024": 34.5281,
       "2025": 42.2485,
-      "2026": 48.3097
+      "2026": 48.242
     },
     "altin_tarihsel": {
       "2005": 21.12,
@@ -68,7 +68,7 @@
       "2023": 1810.58,
       "2024": 2955.47,
       "2025": 5629.45,
-      "2026": 6940.6
+      "2026": 7007.49
     },
     "gumus_tarihsel": {
       "2005": 0.351,
@@ -92,11 +92,11 @@
       "2023": 21.2846,
       "2024": 34.9026,
       "2025": 73.7899,
-      "2026": 102.5418
+      "2026": 104.5307
     },
-    "usd_anlik": 48.3097,
-    "altin_anlik": 6940.6,
-    "gumus_anlik": 102.5418
+    "usd_anlik": 48.242,
+    "altin_anlik": 7007.49,
+    "gumus_anlik": 104.5307
   },
   "enflasyon": {
     "tarihsel": {
@@ -147,7 +147,7 @@
     ]
   },
   "usd_try": {
-    "anlik": 48.3097,
+    "anlik": 48.242,
     "tarihsel": {
       "2005": 1.3538,
       "2006": 1.4476,
@@ -170,35 +170,35 @@
       "2023": 28.5041,
       "2024": 34.5281,
       "2025": 42.2485,
-      "2026": 48.3097
+      "2026": 48.242
     },
     "lineer_regresyon": {
-      "slope": 1.7876,
-      "intercept": -3592.4255,
-      "r2": 0.6431,
+      "slope": 1.7868,
+      "intercept": -3590.8106,
+      "r2": 0.6433,
       "p_value": 0.0,
-      "t_stat": 6.0035
+      "t_stat": 6.0058
     },
     "log_lineer_regresyon": {
       "slope": 0.1826,
-      "intercept": -366.5666,
+      "intercept": -366.5331,
       "r2": 0.904,
       "p_value": 0.0,
-      "t_stat": 13.7205
+      "t_stat": 13.7219
     },
     "ort_yillik_artis": 20.2,
     "gelecek_tahmin": [
       {
         "yil": 2027,
-        "tahmin": 35.29
+        "tahmin": 36.49
       },
       {
         "yil": 2028,
-        "tahmin": 42.36
+        "tahmin": 43.8
       },
       {
         "yil": 2029,
-        "tahmin": 50.85
+        "tahmin": 52.58
       }
     ]
   },
